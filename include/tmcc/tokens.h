@@ -10,6 +10,7 @@ typedef enum
     TOKEN_IDENTIFIER,
     TOKEN_INTEGER,
     TOKEN_STRING,
+    TOKEN_CHAR,
 
     TOKEN_IF,
     TOKEN_ELSE,

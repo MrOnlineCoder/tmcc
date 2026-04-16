@@ -39,6 +39,8 @@ static const char *ast_type_to_string(ast_node_type_t type)
         return "EXPRESSION";
     case AST_INTEGER_LITERAL:
         return "INTEGER_LITERAL";
+    case AST_BINARY_OPERATOR:
+        return "BINARY_OPERATOR";
     default:
         return "UNKNOWN";
     }
@@ -68,14 +70,19 @@ void ast_dump(ast_node_t *node, int indent)
     }
 }
 
-void ast_free(ast_node_t *node)
+void ast_free_deep(ast_node_t *node)
 {
     for (int i = 0; i < node->children_count; i++)
     {
         if (node->children[i])
         {
-            ast_free(node->children[i]);
+            ast_free_deep(node->children[i]);
         }
     }
+    free(node);
+}
+
+void ast_free(ast_node_t *node)
+{
     free(node);
 }

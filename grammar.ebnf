@@ -76,6 +76,21 @@ inplace		::= long-index-opt ( "+="    | "-="
 
 ternary		::= binary '?' binary ':' binary 
 
+# --- Primary values ---
+primary		::= prim-expr 
+		| prim-funcall 
+		| prim-literal
+		| prim-ident
+
+prim-expr	::= '(' expression ')'
+
+prim-funcall	::= identifier '(' expr-list ')'
+
+prim-literal	::= const-literal
+
+prim-ident	::= long-index-opt
+		| index-opt
+
 # --- Binary Operations, Operator Precedence ---
 binary		::= logor-expr
 
@@ -103,9 +118,9 @@ shift-expr	::= add-expr ">>" shift-expr
 add-expr	::= mult-expr '+' add-expr
 		| mult-expr '-' add-expr
 
-mult-expr	::= unary '*' multi-expr
-		| unary '/' multi-expr
-		| unary '%' mutli-expr
+mult-expr	::= unary '*' mult-expr
+		| unary '/' mult-expr
+		| unary '%' mult-expr
 
 # --- Unary ---
 unary		::= unary-plus

@@ -5,9 +5,11 @@
 #include <tmcc/lexer.h>
 #include <tmcc/error.h>
 #include <tmcc/parser.h>
+#include <tmcc/semantic.h>
 
 static lexer_state_t lexer;
 static parser_state_t parser;
+static semantic_state_t semantic;
 
 int main(int argc, char *argv[])
 {
@@ -67,6 +69,20 @@ int main(int argc, char *argv[])
     printf("\nAST:\n");
 
     ast_dump(parser.root, 0);
+
+    if (!semantic_init(&semantic))
+    {
+        crash("failed to initialize semantic analyzer");
+        return 1;
+    }
+
+    if (!semantic_run(&semantic, parser.root))
+    {
+        crash("semantic analysis failed");
+        return 1;
+    }
+
+    semantic_free(&semantic);
 
     parser_free(&parser);
 

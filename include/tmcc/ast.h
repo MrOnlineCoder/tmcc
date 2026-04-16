@@ -9,6 +9,8 @@
 
 typedef enum
 {
+    AST_INVALID,
+
     AST_PROGRAM,
 
     AST_FUNCTION_DEFINITION,
@@ -22,7 +24,17 @@ typedef enum
     AST_EXPRESSION,
 
     AST_INTEGER_LITERAL,
+
+    AST_BINARY_OPERATOR
 } ast_node_type_t;
+
+typedef enum
+{
+    AST_BIN_OP_ADD,
+    AST_BIN_OP_SUB,
+    AST_BIN_OP_MUL,
+    AST_BIN_OP_DIV,
+} ast_bin_op_type_t;
 
 struct ast_node_s
 {
@@ -46,6 +58,11 @@ struct ast_node_s
         {
             int value;
         } integer_literal;
+
+        struct
+        {
+            ast_bin_op_type_t op_type;
+        } binary_op;
     } meta;
 };
 
@@ -56,6 +73,8 @@ ast_node_t *ast_make_node(ast_node_type_t type, const token_t *start_token);
 void ast_add_child(ast_node_t *parent, ast_node_t *child);
 
 void ast_dump(ast_node_t *node, int indent);
+
+void ast_free_deep(ast_node_t *node);
 
 void ast_free(ast_node_t *node);
 

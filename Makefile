@@ -2,7 +2,7 @@ CC=gcc
 CFLAGS=-Wno-nullability-completeness -Iinclude -g
 LDFLAGS=
 
-OBJS=obj/lexer.o obj/main.o obj/error.o obj/parser.o obj/ast.o
+OBJS=obj/lexer.o obj/main.o obj/error.o obj/parser.o obj/ast.o obj/semantic.o
 
 prepare:
 	mkdir -p obj/
@@ -21,6 +21,9 @@ obj/ast.o: src/ast.c include/tmcc/ast.h
 
 obj/parser.o: src/parser.c include/tmcc/parser.h include/tmcc/lexer.h include/tmcc/ast.h
 	$(CC) $(CFLAGS) -c src/parser.c -o obj/parser.o
+
+obj/semantic.o: src/semantic.c include/tmcc/semantic.h include/tmcc/parser.h include/tmcc/ast.h
+	$(CC) $(CFLAGS) -c src/semantic.c -o obj/semantic.o
 
 tmcc: prepare $(OBJS) 
 	$(CC) $(OBJS) -o tmcc $(LDFLAGS)

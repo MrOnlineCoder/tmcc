@@ -8,7 +8,7 @@
       "request": "launch",
       "breakpointMode": "file",
       "program": "${workspaceFolder}/tmcc",
-      "args": ["tests/empty.c"]
+      "args": ["tests/01_inline_sum.c"]
     }
   ]
 }

@@ -297,6 +297,29 @@ void lexer_run(lexer_state_t *lexer)
             continue;
         }
 
+        if (c == '\'')
+        {
+            lexer_advance(lexer);
+
+            if (lexer_is_eof(lexer))
+            {
+                lexer_error(lexer, "unterminated char literal");
+                return;
+            }
+
+            lexer_advance(lexer);
+
+            if (lexer_is_eof(lexer) || lexer->src[lexer->pos] != '\'')
+            {
+                lexer_error(lexer, "unterminated char literal");
+                return;
+            }
+
+            lexer_add_token_at(lexer, TOKEN_CHAR, lexer->pos - 2, 1);
+            lexer_advance(lexer);
+            continue;
+        }
+
         if (c == '"')
         {
             lexer_advance(lexer);
@@ -428,6 +451,8 @@ const char *token_type_to_string(token_type_t type)
         return "COMMA";
     case TOKEN_COLON:
         return "COLON";
+    case TOKEN_CHAR:
+        return "CHAR";
     case TOKEN_EOF:
         return "EOF";
     default:

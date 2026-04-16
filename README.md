@@ -11,4 +11,3 @@ The aim is to significantly boost my skills in C programming, compiler design an
 3. Compiler should produce NASM assembly code, which is then assembled and linked using NASM.
 4. Ideal goal - self-hosting compiler.
 5. **No LLVM!** LLVM is great, but what's the fun then if all the backend will be done by it?
-6. 
