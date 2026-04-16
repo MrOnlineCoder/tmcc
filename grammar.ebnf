@@ -1,0 +1,42 @@
+const-literal	::= expr-const | str-const | char-const | num-const | int-const | null-const
+
+null-const	::= "NULL"
+
+expr-const	::= int-const { ( '+' | '-' | '*' | '%' | '/' | '&' | '|' ) int-const }
+
+str-const	::= [ 'L' ] '"' { character } '"'
+
+char-const	::= "'" character  "'"
+
+num-const	::= integer | rational
+
+float-const	::= float
+
+int-const	::= integer | char-const
+
+rational	::= [ intenger ] '.' integer
+
+integer		::= dec-digit | hex-digit | oct-digit | bin-digit
+
+bin-integer	::= ( "0b" | "0B" ) bin-digit { bin-digit }
+
+oct-integer	::= ( "0o" | "0O" ) oct-digt { oct-digit }
+
+hex-integer	::= ( "0x" | "0X" ) hex-digit { hex-digit }
+
+dec-integer	::= digit { digit }
+
+identifier	::= ( letter | '_' ) { letter | digit | '_' }
+
+letter		::= upper-case | lower-case
+
+lower-case	::= 'a' | 'b' | 'c' | ... | 'x' | 'y' | 'z'
+
+upper-case	::= 'A' | 'B' | 'C' | ... | 'X' | 'Y' | 'Z'
+
+hex-digit	::= digit | 'a' | 'b' | 'c' | 'd' | 'e' | 'f'
+			 | 'A' | 'B' | 'C' | 'D' | 'E' | 'F'
+
+digit		::= oct-digit | '8' | '9'
+oct-digit	::= bin-digit | '2' | '3' | '4' | '5' | '6' | '7'
+bin-digit	::= '0' | '1'

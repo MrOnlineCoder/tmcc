@@ -1,14 +1,20 @@
-CC = gcc
-CFLAGS = -Iinclude
+CC=gcc
+CFLAGS=-Wno-nullability-completeness -Iinclude -g
+LDFLAGS=
 
-SRCS = src/main.c
-OBJS = obj/main.o
-
-obj/main.o:
-	$(CC) $(CFLAGS) -c src/main.c -o obj/main.o
+OBJS=obj/lexer.o obj/main.o obj/error.o
 
 prepare:
-	mkdir -p obj
+	mkdir -p obj/
 
-build: prepare $(OBJS)
-	$(CC) $(CFLAGS) -o tmcc $(OBJS)
+obj/lexer.o: src/lexer.c include/tmcc/lexer.h
+	$(CC) $(CFLAGS) -c src/lexer.c -o obj/lexer.o
+
+obj/main.o: src/main.c 
+	$(CC) $(CFLAGS) -c src/main.c -o obj/main.o
+
+obj/error.o: src/error.c include/tmcc/error.h
+	$(CC) $(CFLAGS) -c src/error.c -o obj/error.o
+
+tmcc: prepare $(OBJS) 
+	$(CC) $(OBJS) -o tmcc $(LDFLAGS)

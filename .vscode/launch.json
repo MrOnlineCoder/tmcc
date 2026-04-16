@@ -1,0 +1,14 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Launch",
+      "cwd": "${workspaceFolder}/",
+      "type": "lldb",
+      "request": "launch",
+      "breakpointMode": "file",
+      "program": "${workspaceFolder}/tmcc",
+      "args": ["tests/empty.c"]
+    }
+  ]
+}
