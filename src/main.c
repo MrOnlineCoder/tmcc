@@ -6,10 +6,13 @@
 #include <tmcc/error.h>
 #include <tmcc/parser.h>
 #include <tmcc/semantic.h>
+#include <tmcc/codegen.h>
+#include <tmcc/linker.h>
 
 static lexer_state_t lexer;
 static parser_state_t parser;
 static semantic_state_t semantic;
+static codegen_state_t codegen;
 
 int main(int argc, char *argv[])
 {
@@ -82,8 +85,27 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    semantic_free(&semantic);
+    if (!codegen_init(&codegen))
+    {
+        crash("failed to initialize code generator");
+        return 1;
+    }
 
+    if (!codegen_run(&codegen, parser.root))
+    {
+        crash("code generation failed");
+        return 1;
+    }
+
+    printf("%s\n", codegen.output);
+
+    if (!linker_assemble(&codegen, "output"))
+    {
+        crash("linking failed");
+        return 1;
+    }
+
+    semantic_free(&semantic);
     parser_free(&parser);
 
     return 0;

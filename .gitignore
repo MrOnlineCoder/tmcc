@@ -1,3 +1,7 @@
 /tmcc
 obj/
 books/
+output.asm
+output.lst
+/output
+output.o
