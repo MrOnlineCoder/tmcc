@@ -2,19 +2,25 @@ CC=gcc
 CFLAGS=-Wno-nullability-completeness -Iinclude -g
 LDFLAGS=
 
-OBJS=obj/lexer.o obj/main.o obj/error.o
+OBJS=obj/lexer.o obj/main.o obj/error.o obj/parser.o obj/ast.o
 
 prepare:
 	mkdir -p obj/
 
-obj/lexer.o: src/lexer.c include/tmcc/lexer.h
+obj/lexer.o: src/lexer.c include/tmcc/lexer.h include/tmcc/tokens.h
 	$(CC) $(CFLAGS) -c src/lexer.c -o obj/lexer.o
 
-obj/main.o: src/main.c 
+obj/main.o: src/main.c include/tmcc/error.h
 	$(CC) $(CFLAGS) -c src/main.c -o obj/main.o
 
 obj/error.o: src/error.c include/tmcc/error.h
 	$(CC) $(CFLAGS) -c src/error.c -o obj/error.o
+
+obj/ast.o: src/ast.c include/tmcc/ast.h
+	$(CC) $(CFLAGS) -c src/ast.c -o obj/ast.o
+
+obj/parser.o: src/parser.c include/tmcc/parser.h include/tmcc/lexer.h include/tmcc/ast.h
+	$(CC) $(CFLAGS) -c src/parser.c -o obj/parser.o
 
 tmcc: prepare $(OBJS) 
 	$(CC) $(OBJS) -o tmcc $(LDFLAGS)

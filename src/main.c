@@ -4,8 +4,10 @@
 
 #include <tmcc/lexer.h>
 #include <tmcc/error.h>
+#include <tmcc/parser.h>
 
 static lexer_state_t lexer;
+static parser_state_t parser;
 
 int main(int argc, char *argv[])
 {
@@ -47,7 +49,26 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    printf("Tokens:\n");
     lexer_dump_tokens(&lexer);
+
+    if (!parser_init(&parser))
+    {
+        crash("failed to initialize parser");
+        return 1;
+    }
+
+    if (!parser_run(&parser, &lexer))
+    {
+        crash("%s", parser.err);
+        return 1;
+    }
+
+    printf("\nAST:\n");
+
+    ast_dump(parser.root, 0);
+
+    parser_free(&parser);
 
     return 0;
 }

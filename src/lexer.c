@@ -250,6 +250,27 @@ void lexer_run(lexer_state_t *lexer)
 
         if (c == '/')
         {
+            if (lexer->pos + 1 < lexer->src_length && lexer->src[lexer->pos + 1] == '*')
+            {
+                lexer_advance_many(lexer, 2);
+                while (!lexer_is_eof(lexer))
+                {
+                    char comment_char = lexer->src[lexer->pos];
+
+                    if (comment_char == '*')
+                    {
+                        if (lexer->pos + 1 < lexer->src_length && lexer->src[lexer->pos + 1] == '/')
+                        {
+                            lexer_advance_many(lexer, 2);
+                            break;
+                        }
+                    }
+
+                    lexer_advance(lexer);
+                }
+                continue;
+            }
+
             lexer_add_token(lexer, TOKEN_SLASH, 1);
             lexer_advance(lexer);
             continue;
@@ -363,7 +384,7 @@ const char *lexer_get_error(lexer_state_t *lexer)
     return lexer->err;
 }
 
-static const char *token_type_to_string(token_type_t type)
+const char *token_type_to_string(token_type_t type)
 {
     switch (type)
     {

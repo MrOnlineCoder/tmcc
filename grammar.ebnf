@@ -1,3 +1,185 @@
+# --- Top Level ---
+program	::= { decl-stmt | fn-definition }
+
+# --- Functions ---
+
+fun-definition	::= fun-signature compound-statement
+
+fun-signature	::= [ kw-static ] [ kw-inline ] tyy-decl identifier '(' tyyid-pair-list ')'
+
+# --- Statements ---
+
+statement-list  ::= { statement }
+
+statement	::= decl-stmt
+		| for-stmt
+		| break-stmt
+		| null-stmt
+		| return-stmt
+		| compound-stmt
+		| continue-stmt
+		| if-stmt
+		| while-stmt
+		| do-while-stmt
+		| labeled-stmt
+		| goto-stmt
+
+compound-stmt	::= '{' statement-list '}'
+
+goto-stmt	::= kw-goto identifier ';'
+
+null-stmt	::= ';'
+
+return-stmt	::= kw-return expression ';'
+
+continue-stmt	::= kw-continue ';'
+
+break-stmt	::= kw-break ';'
+
+if-stmt		::= kw-if '(' expr-list ')' compound-stmt { kw-else [ '(' expr-list ')' ] compound-stmt }
+
+while-stmt	::= kw-while '(' expr-list ')' compound-stmt
+
+do-while-stmt	::= kw-do compound-stmt kw-while '(' expr-list ')'
+
+for-stmt	::= kw-for '(' assign-list ';' expr-list ';' expr-list ')' compound-stmt
+
+decl-stmt	::= assign-list ';'
+		| tyy-defn ';'
+		| fun-signature ';'
+
+
+# --- Functions ---
+
+fun-definition	::= fun-signature compound-statement
+
+fun-signature	::= [ kw-static ] [ kw-inline ] tyy-decl identifier '(' tyyid-pair-list ')'
+
+# --- Expressions ---
+
+expr-list	::= expression { ',' expression }
+
+expression	::= primary
+	        | unary
+		| binary
+		| ternary
+		| inplace
+		| synthesized
+
+synthesized	::= '(' assign-list ')'
+
+inplace		::= long-index-opt ( "+="    | "-=" 
+				    | "*="  | "/=" 
+				    | "%="  | "<<=" 
+				    | ">>=" | "&=" 
+				    | "|="  | "^=" ) expression
+
+ternary		::= binary '?' binary ':' binary 
+
+# --- Binary Operations, Operator Precedence ---
+binary		::= logor-expr
+
+logor-expr	::= logand-expr "||" logor-expr
+
+logand-expr	::= bitor-expr "&&" logand-expr
+
+bitor-expr	::= bitxor-expr '|' bitor-expr
+
+bitxor-expr	::= bitand-expr '^' bitxor-expr
+
+bitand-expr	::= eqop-expr '&' bitand-expr
+
+eqop-expr	::= relop-expr "==" eqop-expr
+		| relop-expr "!=" eqop-expr
+
+relop-expr	::= shift-expr '<' relop-expr
+		| shift-expr '>' relop-expr
+		| shift-expr "<=" relop-expr
+		| shift-expr ">=" relop-expr
+
+shift-expr	::= add-expr ">>" shift-expr
+		| add-expr "<<" shift-expr
+
+add-expr	::= mult-expr '+' add-expr
+		| mult-expr '-' add-expr
+
+mult-expr	::= unary '*' multi-expr
+		| unary '/' multi-expr
+		| unary '%' mutli-expr
+
+# --- Unary ---
+unary		::= unary-plus
+		| unary-minus
+		| unary-1scomp
+		| unary-2scomp
+		| unary-lnot
+		| unary-ref
+                 | unary-deref
+		| unary-preinc
+		| unary-predec
+		| unary-postinc
+		| unary-postdec
+                 | unary-offsetof
+		| unary-sizeof
+
+unary-offsetof	::= "offsetof" primary
+
+unary-sizeof	::= "sizeof" primary
+
+unary-postdec	::= primary "--"
+
+unary-postinc	::= primary "++"
+
+unary-predec	::= "--" primary
+
+unary-preinc	::= "++" primary
+
+unary-deref	::= '*' primary
+
+unary-ref	::= '&' primary
+
+unary-lnot	::= '!' primary
+
+unary-2scompl	::= '~' primary
+
+unary-1scompl	::= '-' primary
+
+unary-plus	::= '+' primary
+
+# --- Keyword Constants ---
+kw-break	::= "break"
+kw-case		::= "case"
+kw-char		::= "char"
+kw-const	::= "const"
+kw-continue	::= "continue"
+kw-default	::= "default"
+kw-do		::= "do"
+kw-double	::= "double"
+kw-else		::= "else"
+kw-enum 	::= "enum"
+kw-extern 	::= "extern"
+kw-float 	::= "float"
+kw-for 		::= "for"
+kw-goto 	::= "goto"
+kw-if 		::= "if"
+kw-int 		::= "int"
+kw-long 	::= "long"
+kw-register ::= "register"
+kw-return 	::= "return"
+kw-short 	::= "short"
+kw-signed 	::= "signed"
+kw-sizeof 	::= "sizeof"
+kw-static 	::= "static"
+kw-struct 	::= "struct"
+kw-switch 	::= "switch"
+kw-typedef 	::= "typedef"
+kw-union 	::= "union"
+kw-unsigned ::= "unsigned"
+kw-void 	::= "void"
+kw-volatile ::= "volatile"
+kw-while 	::= "while"
+
+# --- Literals and Atoms ---
 const-literal	::= expr-const | str-const | char-const | num-const | int-const | null-const
 
 null-const	::= "NULL"
@@ -14,13 +196,13 @@ float-const	::= float
 
 int-const	::= integer | char-const
 
-rational	::= [ intenger ] '.' integer
+rational	::= [ integer ] '.' integer
 
 integer		::= dec-digit | hex-digit | oct-digit | bin-digit
 
 bin-integer	::= ( "0b" | "0B" ) bin-digit { bin-digit }
 
-oct-integer	::= ( "0o" | "0O" ) oct-digt { oct-digit }
+oct-integer	::= ( "0o" | "0O" ) oct-digit { oct-digit }
 
 hex-integer	::= ( "0x" | "0X" ) hex-digit { hex-digit }
 

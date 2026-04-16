@@ -5,6 +5,8 @@
 
 typedef enum
 {
+    TOKEN_INVALID,
+
     TOKEN_IDENTIFIER,
     TOKEN_INTEGER,
     TOKEN_STRING,
@@ -43,5 +45,7 @@ typedef struct
     size_t line;
     size_t column;
 } token_t;
+
+const char *token_type_to_string(token_type_t type);
 
 #endif
