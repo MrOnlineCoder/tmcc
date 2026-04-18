@@ -2,7 +2,7 @@
 #define AST_H
 
 #include <stdbool.h>
-
+#include <tmcc/symbol.h>
 #include <tmcc/tokens.h>
 
 #define AST_MAX_CHILDREN 64
@@ -25,7 +25,13 @@ typedef enum
 
     AST_INTEGER_LITERAL,
 
-    AST_BINARY_OPERATOR
+    AST_BINARY_OPERATOR,
+
+    AST_ASSIGN_STATEMENT,
+
+    AST_DECLARATION,
+
+    AST_VARIABLE
 } ast_node_type_t;
 
 typedef enum
@@ -45,6 +51,8 @@ struct ast_node_s
 
     const token_t *start_token;
 
+    const ctype_t *expr_type;
+
     union
     {
         struct
@@ -63,6 +71,27 @@ struct ast_node_s
         {
             ast_bin_op_type_t op_type;
         } binary_op;
+
+        struct
+        {
+            symbol_t *sym;
+        } variable;
+
+        struct
+        {
+            ctype_t *type;
+            const token_t *id;
+        } declaration;
+
+        struct
+        {
+            ctype_t *type;
+        } return_stmt;
+
+        struct
+        {
+
+        } assign_stmt;
     } meta;
 };
 

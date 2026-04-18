@@ -2,7 +2,7 @@ CC=gcc
 CFLAGS=-Wno-nullability-completeness -Iinclude -g
 LDFLAGS=
 
-OBJS=obj/lexer.o obj/main.o obj/error.o obj/parser.o obj/ast.o obj/semantic.o obj/codegen.o obj/linker.o
+OBJS=obj/lexer.o obj/main.o obj/error.o obj/parser.o obj/ast.o obj/semantic.o obj/codegen.o obj/linker.o obj/types.o obj/symtable.o
 
 prepare:
 	mkdir -p obj/
@@ -30,6 +30,12 @@ obj/codegen.o: src/codegen.c include/tmcc/codegen.h include/tmcc/semantic.h incl
 
 obj/linker.o: src/linker.c include/tmcc/linker.h include/tmcc/codegen.h
 	$(CC) $(CFLAGS) -c src/linker.c -o obj/linker.o
+
+obj/types.o: src/types.c include/tmcc/types.h
+	$(CC) $(CFLAGS) -c src/types.c -o obj/types.o
+
+obj/symtable.o: src/symtable.c include/tmcc/symtable.h
+	$(CC) $(CFLAGS) -c src/symtable.c -o obj/symtable.o
 
 tmcc: prepare $(OBJS) 
 	$(CC) $(OBJS) -o tmcc $(LDFLAGS)

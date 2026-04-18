@@ -85,12 +85,20 @@ static bool lexer_is_alphanumeric(char c)
 
 static token_type_t lexer_detect_keyword_or_id(const char *start, size_t length)
 {
-    if (length == 2 && strncmp(start, "if", 2) == 0)
-        return TOKEN_IF;
-    if (length == 4 && strncmp(start, "else", 4) == 0)
-        return TOKEN_ELSE;
-    if (length == 6 && strncmp(start, "return", 6) == 0)
-        return TOKEN_RETURN;
+    if (strncmp(start, "if", 2) == 0)
+        return TOKEN_KW_IF;
+    if (strncmp(start, "else", 4) == 0)
+        return TOKEN_KW_ELSE;
+    if (strncmp(start, "return", 6) == 0)
+        return TOKEN_KW_RETURN;
+    if (strncmp(start, "int", 3) == 0)
+        return TOKEN_KW_INT;
+    if (strncmp(start, "void", 4) == 0)
+        return TOKEN_KW_VOID;
+    if (strncmp(start, "static", 6) == 0)
+        return TOKEN_KW_STATIC;
+    if (strncmp(start, "const", 5) == 0)
+        return TOKEN_KW_CONST;
 
     return TOKEN_IDENTIFIER;
 }
@@ -417,12 +425,20 @@ const char *token_type_to_string(token_type_t type)
         return "INTEGER";
     case TOKEN_STRING:
         return "STRING";
-    case TOKEN_IF:
+    case TOKEN_KW_IF:
         return "IF";
-    case TOKEN_ELSE:
+    case TOKEN_KW_ELSE:
         return "ELSE";
-    case TOKEN_RETURN:
+    case TOKEN_KW_RETURN:
         return "RETURN";
+    case TOKEN_KW_INT:
+        return "INT";
+    case TOKEN_KW_VOID:
+        return "VOID";
+    case TOKEN_KW_STATIC:
+        return "STATIC";
+    case TOKEN_KW_CONST:
+        return "CONST";
     case TOKEN_PLUS:
         return "PLUS";
     case TOKEN_MINUS:

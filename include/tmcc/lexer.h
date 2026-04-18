@@ -34,6 +34,7 @@ void lexer_run(lexer_state_t *lexer);
 void lexer_reset(lexer_state_t *lexer);
 
 bool lexer_has_error(lexer_state_t *lexer);
+
 const char *lexer_get_error(lexer_state_t *lexer);
 
 void lexer_dump_tokens(lexer_state_t *lexer);

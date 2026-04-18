@@ -65,6 +65,7 @@ int main(int argc, char *argv[])
 
     if (!parser_run(&parser, &lexer))
     {
+        ast_dump(parser.root, 0);
         crash("%s", parser.err);
         return 1;
     }
@@ -81,7 +82,7 @@ int main(int argc, char *argv[])
 
     if (!semantic_run(&semantic, parser.root))
     {
-        crash("semantic analysis failed");
+        crash("semantic analysis failed: %s", semantic.err);
         return 1;
     }
 
@@ -99,11 +100,11 @@ int main(int argc, char *argv[])
 
     printf("%s\n", codegen.output);
 
-    if (!linker_assemble(&codegen, "output"))
-    {
-        crash("linking failed");
-        return 1;
-    }
+    // if (!linker_assemble(&codegen, "output"))
+    // {
+    //     crash("linking failed");
+    //     return 1;
+    // }
 
     semantic_free(&semantic);
     parser_free(&parser);

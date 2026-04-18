@@ -6,6 +6,7 @@
 ast_node_t *ast_make_node(ast_node_type_t type, const token_t *start_token)
 {
     ast_node_t *node = malloc(sizeof(ast_node_t));
+    memset(node, 0, sizeof(ast_node_t));
     node->type = type;
     node->start_token = start_token;
     node->children_count = 0;
@@ -41,6 +42,12 @@ static const char *ast_type_to_string(ast_node_type_t type)
         return "INTEGER_LITERAL";
     case AST_BINARY_OPERATOR:
         return "BINARY_OPERATOR";
+    case AST_ASSIGN_STATEMENT:
+        return "ASSIGN_STATEMENT";
+    case AST_DECLARATION:
+        return "DECLARATION";
+    case AST_VARIABLE:
+        return "VARIABLE";
     default:
         return "UNKNOWN";
     }

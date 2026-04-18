@@ -48,13 +48,6 @@ decl-stmt	::= assign-list ';'
 		| tyy-defn ';'
 		| fun-signature ';'
 
-
-# --- Functions ---
-
-fun-definition	::= fun-signature compound-statement
-
-fun-signature	::= [ kw-static ] [ kw-inline ] tyy-decl identifier '(' tyyid-pair-list ')'
-
 # --- Expressions ---
 
 expr-list	::= expression { ',' expression }

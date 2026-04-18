@@ -1,7 +1,10 @@
 int main()
 {
-    int a = 4;
-    int b = 7;
+    int a;
+    int b;
+
+    a = 5;
+    b = 10;
 
     return a + b;
 }

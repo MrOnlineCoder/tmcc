@@ -1,6 +1,14 @@
 #include <tmcc/parser.h>
 #include <stdarg.h>
 #include <stdlib.h>
+#include <tmcc/types.h>
+
+typedef struct
+{
+    ctype_t *type;
+    bool is_static;
+    bool is_const;
+} declspec_t;
 
 static void parser_fatal_error(parser_state_t *parser, const char *format, ...)
 {
@@ -136,6 +144,16 @@ static ast_node_t *parse_primary_expression(parser_state_t *parser)
         parser_expect(parser, TOKEN_RPAREN);
         return expr;
     }
+    else if (parser_test(parser, TOKEN_IDENTIFIER))
+    {
+        ast_node_t *var = parser_make_node(parser, AST_VARIABLE);
+
+        var->meta.variable.sym = NULL;
+
+        parser_expect(parser, TOKEN_IDENTIFIER);
+
+        return var;
+    }
 
     parser_error(parser, "unexpected token");
     return NULL;
@@ -256,7 +274,7 @@ static ast_node_t *parse_return_statement(parser_state_t *parser)
 {
     ast_node_t *node = parser_make_node(parser, AST_RETURN_STATEMENT);
 
-    parser_expect(parser, TOKEN_RETURN);
+    parser_expect(parser, TOKEN_KW_RETURN);
 
     ast_node_t *expr = parse_expression(parser);
 
@@ -264,6 +282,76 @@ static ast_node_t *parse_return_statement(parser_state_t *parser)
         return NULL;
 
     ast_add_child(node, expr);
+
+    parser_expect(parser, TOKEN_SEMICOLON);
+
+    return node;
+}
+
+static ast_node_t *parse_assign_statement(parser_state_t *parser)
+{
+    ast_node_t *node = parser_make_node(parser, AST_ASSIGN_STATEMENT);
+
+    ast_add_child(node, parse_primary_expression(parser));
+
+    parser_expect(parser, TOKEN_EQUAL);
+
+    ast_add_child(node, parse_expression(parser));
+
+    parser_expect(parser, TOKEN_SEMICOLON);
+
+    return node;
+}
+
+static bool is_declspec_token(token_type_t type)
+{
+    return type == TOKEN_KW_INT || type == TOKEN_KW_VOID || type == TOKEN_KW_STATIC || type == TOKEN_KW_CONST;
+}
+
+static declspec_t parse_declspec(parser_state_t *parser)
+{
+    declspec_t res = {0};
+
+    res.type = NULL;
+
+    while (is_declspec_token(parser_peek(parser)->type))
+    {
+        if (parser_test(parser, TOKEN_KW_INT))
+        {
+            res.type = &CTYPE_BUILTIN_INT;
+        }
+        else if (parser_test(parser, TOKEN_KW_VOID))
+        {
+            res.type = &CTYPE_BUILTIN_VOID;
+        }
+        else if (parser_test(parser, TOKEN_KW_STATIC))
+        {
+            res.is_static = true;
+        }
+        else if (parser_test(parser, TOKEN_KW_CONST))
+        {
+            res.is_const = true;
+        }
+
+        parser_next(parser);
+    }
+
+    return res;
+}
+
+static ast_node_t *parse_declaration(parser_state_t *parser)
+{
+    declspec_t declspec = parse_declspec(parser);
+
+    if (declspec.type == NULL)
+    {
+        return parse_assign_statement(parser);
+    }
+
+    ast_node_t *node = parser_make_node(parser, AST_DECLARATION);
+
+    node->meta.declaration.type = declspec.type;
+    node->meta.declaration.id = parser_expect(parser, TOKEN_IDENTIFIER);
 
     parser_expect(parser, TOKEN_SEMICOLON);
 
@@ -278,7 +366,16 @@ static ast_node_t *parse_compound_statement(parser_state_t *parser)
 
     while (!parser_is_eof(parser) && !parser_test(parser, TOKEN_RBRACE))
     {
-        ast_node_t *stmt = parse_return_statement(parser);
+        ast_node_t *stmt = NULL;
+
+        if (parser_test(parser, TOKEN_KW_RETURN))
+        {
+            stmt = parse_return_statement(parser);
+        }
+        else
+        {
+            stmt = parse_declaration(parser);
+        }
 
         if (stmt)
         {
@@ -299,7 +396,7 @@ static ast_node_t *parse_function_signature(parser_state_t *parser)
 {
     ast_node_t *node = parser_make_node(parser, AST_FUNCTION_SIGNATURE);
 
-    parser_expect(parser, TOKEN_IDENTIFIER); /* return type */
+    parser_expect(parser, TOKEN_KW_INT); /* return type */
 
     node->meta.function_signature.name = parser_expect(parser, TOKEN_IDENTIFIER); /* function name */
     node->meta.function_signature.is_inline = false;
