@@ -28,6 +28,8 @@ bool linker_assemble(
 
     fclose(asm_file);
 
+    return true;
+
     int nasm_pid = fork();
 
     if (nasm_pid == -1)

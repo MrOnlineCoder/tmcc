@@ -100,11 +100,11 @@ int main(int argc, char *argv[])
 
     printf("%s\n", codegen.output);
 
-    // if (!linker_assemble(&codegen, "output"))
-    // {
-    //     crash("linking failed");
-    //     return 1;
-    // }
+    if (!linker_assemble(&codegen, "output"))
+    {
+        crash("linking failed");
+        return 1;
+    }
 
     semantic_free(&semantic);
     parser_free(&parser);

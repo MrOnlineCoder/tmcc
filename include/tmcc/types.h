@@ -47,4 +47,6 @@ extern ctype_t CTYPE_BUILTIN_VOID;
 extern ctype_t CTYPE_BUILTIN_INT;
 extern ctype_t CTYPE_BUILTIN_CHAR;
 
+const ctype_t *ctype_binary_result_type(const ctype_t *left, const ctype_t *right);
+
 #endif

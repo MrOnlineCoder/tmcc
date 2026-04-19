@@ -6,7 +6,7 @@
 #include <stdbool.h>
 #include <string.h>
 
-#define MAX_SYMBOL_TABLE_SIZE 1024
+#define MAX_SYMBOL_TABLE_SIZE 256
 
 typedef struct
 {
@@ -16,9 +16,11 @@ typedef struct
 
 void symtable_init(symbol_table_t *symtable);
 
+symbol_table_t *symtable_new();
+
 bool symtable_add(symbol_table_t *symtable, symbol_t *symbol);
 
-symbol_t *symtable_lookup(symbol_table_t *symtable, const char *name);
+symbol_t *symtable_lookup(const symbol_table_t *symtable, const char *name);
 
 void symtable_free(symbol_table_t *symtable);
 

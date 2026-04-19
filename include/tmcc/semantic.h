@@ -18,6 +18,8 @@ typedef struct
 {
     ast_node_t *root;
 
+    symbol_table_t *locals;
+
     semantic_scope_t *current_scope;
     semantic_scope_t global_scope;
 

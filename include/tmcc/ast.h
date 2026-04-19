@@ -4,6 +4,7 @@
 #include <stdbool.h>
 #include <tmcc/symbol.h>
 #include <tmcc/tokens.h>
+#include <tmcc/symtable.h>
 
 #define AST_MAX_CHILDREN 64
 
@@ -59,8 +60,13 @@ struct ast_node_s
         {
             bool is_static;
             bool is_inline;
-            const token_t *name;
-        } function_signature;
+            const char *name;
+
+            symbol_table_t *params;
+            symbol_table_t *locals;
+
+            const ctype_t *return_type;
+        } function;
 
         struct
         {
@@ -82,16 +88,6 @@ struct ast_node_s
             ctype_t *type;
             const token_t *id;
         } declaration;
-
-        struct
-        {
-            ctype_t *type;
-        } return_stmt;
-
-        struct
-        {
-
-        } assign_stmt;
     } meta;
 };
 

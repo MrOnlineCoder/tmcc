@@ -21,7 +21,7 @@ bool symtable_add(symbol_table_t *symtable, symbol_t *symbol)
     return true;
 }
 
-symbol_t *symtable_lookup(symbol_table_t *symtable, const char *name)
+symbol_t *symtable_lookup(const symbol_table_t *symtable, const char *name)
 {
     for (size_t i = 0; i < symtable->count; i++)
     {
@@ -55,4 +55,15 @@ symbol_t *symbol_new(const char *name, const ctype_t *type, symbol_scope_t scope
     sym->stack_offset = stack_offset;
 
     return sym;
+}
+
+symbol_table_t *symtable_new()
+{
+    symbol_table_t *symtable = malloc(sizeof(symbol_table_t));
+    if (!symtable)
+    {
+        return NULL;
+    }
+    symtable_init(symtable);
+    return symtable;
 }

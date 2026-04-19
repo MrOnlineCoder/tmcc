@@ -53,4 +53,6 @@ typedef struct
 
 const char *token_type_to_string(token_type_t type);
 
+const char *extract_token_as_new_string(const token_t *token);
+
 #endif

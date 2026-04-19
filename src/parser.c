@@ -1,7 +1,9 @@
 #include <tmcc/parser.h>
+#include <tmcc/types.h>
+#include <tmcc/tokens.h>
+
 #include <stdarg.h>
 #include <stdlib.h>
-#include <tmcc/types.h>
 
 typedef struct
 {
@@ -80,18 +82,6 @@ static bool parser_test(parser_state_t *parser, token_type_t type)
     return token && token->type == type;
 }
 
-static bool extract_token_string(const token_t *token, char *buffer, size_t buffer_size)
-{
-    if (token->length >= buffer_size)
-    {
-        return false;
-    }
-
-    memcpy(buffer, token->start, token->length);
-    buffer[token->length] = '\0';
-    return true;
-}
-
 bool parser_init(parser_state_t *parser)
 {
     parser->root = NULL;
@@ -116,15 +106,11 @@ static ast_node_t *parse_integer_literal(parser_state_t *parser)
     if (!token)
         return NULL;
 
-    char buffer[64];
-
-    if (!extract_token_string(token, buffer, sizeof(buffer)))
-    {
-        parser_error(parser, "integer literal too long");
-        return NULL;
-    }
+    const char *buffer = extract_token_as_new_string(token);
 
     node->meta.integer_literal.value = atoi(buffer);
+
+    free(buffer);
 
     return node;
 }
@@ -396,11 +382,15 @@ static ast_node_t *parse_function_signature(parser_state_t *parser)
 {
     ast_node_t *node = parser_make_node(parser, AST_FUNCTION_SIGNATURE);
 
-    parser_expect(parser, TOKEN_KW_INT); /* return type */
+    declspec_t dtype = parse_declspec(parser);
 
-    node->meta.function_signature.name = parser_expect(parser, TOKEN_IDENTIFIER); /* function name */
-    node->meta.function_signature.is_inline = false;
-    node->meta.function_signature.is_static = false;
+    node->meta.function.return_type = dtype.type;
+
+    const token_t *id_token = parser_expect(parser, TOKEN_IDENTIFIER);
+
+    node->meta.function.name = extract_token_as_new_string(id_token);
+    node->meta.function.is_inline = false;
+    node->meta.function.is_static = dtype.is_static;
 
     parser_expect(parser, TOKEN_LPAREN);
     // TODO: parse parameters
@@ -415,10 +405,24 @@ static ast_node_t *parse_function_definition(parser_state_t *parser)
 
     /*TODO: implement type parsing*/
 
-    ast_node_t *signature = parse_function_signature(parser);
+    declspec_t dtype = parse_declspec(parser);
+
+    node->meta.function.return_type = dtype.type;
+
+    const token_t *id_token = parser_expect(parser, TOKEN_IDENTIFIER);
+
+    node->meta.function.name = extract_token_as_new_string(id_token);
+    node->meta.function.is_inline = false;
+    node->meta.function.is_static = dtype.is_static;
+
+    parser_expect(parser, TOKEN_LPAREN);
+    // TODO: parse parameters
+    parser_expect(parser, TOKEN_RPAREN);
+
+    // ast_node_t *signature = parse_function_signature(parser);
     ast_node_t *body = parse_compound_statement(parser);
 
-    ast_add_child(node, signature);
+    // ast_add_child(node, signature);
     ast_add_child(node, body);
 
     return node;

@@ -491,3 +491,8 @@ void lexer_dump_tokens(lexer_state_t *lexer)
                content);
     }
 }
+
+const char *extract_token_as_new_string(const token_t *token)
+{
+    return strndup(token->start, token->length);
+}

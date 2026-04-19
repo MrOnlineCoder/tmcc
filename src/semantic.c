@@ -1,4 +1,5 @@
 #include <tmcc/semantic.h>
+#include <tmcc/tokens.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -57,6 +58,8 @@ static semantic_scope_t *semantic_exit_scope(semantic_state_t *semantic)
     semantic_scope_t *exiting_scope = semantic->current_scope;
     semantic->current_scope = exiting_scope->parent;
 
+    free(exiting_scope);
+
     semantic_debug(semantic, "exited scope at depth %zu, now at depth %zu",
                    exiting_scope->depth, semantic->current_scope->depth);
 
@@ -80,11 +83,6 @@ static symbol_t *semantic_lookup(semantic_state_t *semantic, const char *name)
     return NULL;
 }
 
-static char *extract_token_as_new_string(const token_t *token)
-{
-    return strndup(token->start, token->length);
-}
-
 /*------*/
 static void analyze_binary_operator(semantic_state_t *semantic, ast_node_t *node);
 static void analyze_expression(semantic_state_t *semantic, ast_node_t *node);
@@ -98,13 +96,31 @@ static bool is_valid_lvalue(ast_node_t *node)
 
 static void analyze_declaration(semantic_state_t *semantic, ast_node_t *node)
 {
+    const char *name = extract_token_as_new_string(node->meta.declaration.id);
+
+    symbol_t *existing_sym = symtable_lookup(&semantic->current_scope->symtable, name);
+
+    if (existing_sym)
+    {
+        semantic_error(semantic, "redeclaration of variable '%s' at line %zu:%zu", name, node->start_token->line, node->start_token->column);
+        free(name);
+        return;
+    }
+
+    symbol_scope_t ss = semantic->current_scope == &semantic->global_scope ? SCOPE_GLOBAL : SCOPE_LOCAL;
+
     symbol_t *sym = symbol_new(
-        extract_token_as_new_string(node->meta.declaration.id),
+        name,
         node->meta.declaration.type,
-        SCOPE_LOCAL,
+        ss,
         0);
 
     symtable_add(&semantic->current_scope->symtable, sym);
+
+    if (ss == SCOPE_LOCAL && semantic->locals)
+    {
+        symtable_add(semantic->locals, sym);
+    }
 
     semantic_debug(semantic, "declared variable '%s' of type %d in scope depth %zu",
                    sym->name, sym->type->kind, semantic->current_scope->depth);
@@ -117,6 +133,9 @@ static void analyze_binary_operator(semantic_state_t *semantic, ast_node_t *node
 
     analyze_expression(semantic, left);
     analyze_expression(semantic, right);
+
+    node->expr_type = ctype_binary_result_type(
+        left->expr_type, right->expr_type);
 }
 
 static void analyze_expression(semantic_state_t *semantic, ast_node_t *node)
@@ -140,7 +159,14 @@ static void analyze_return_statement(semantic_state_t *semantic, ast_node_t *nod
 {
     if (node->children_count > 0)
     {
-        analyze_expression(semantic, node->children[0]);
+        ast_node_t *expr = node->children[0];
+        analyze_expression(semantic, expr);
+
+        node->expr_type = expr->expr_type;
+    }
+    else
+    {
+        node->expr_type = &CTYPE_BUILTIN_VOID;
     }
 }
 
@@ -162,6 +188,8 @@ static void analyze_assign_statement(semantic_state_t *semantic, ast_node_t *nod
     }
 
     analyze_expression(semantic, rhs);
+
+    node->expr_type = rhs->expr_type;
 }
 
 static void analyze_variable(semantic_state_t *semantic, ast_node_t *node)
@@ -211,15 +239,20 @@ static void analyze_compound_statement(semantic_state_t *semantic, ast_node_t *n
 
 static void analyze_function_definition(semantic_state_t *semantic, ast_node_t *node)
 {
-    ast_node_t *signature = node->children[0];
-    ast_node_t *body = node->children[1];
+    ast_node_t *body = node->children[0];
 
     semantic_enter_scope(semantic);
+
+    semantic->locals = symtable_new();
 
     if (body->type == AST_COMPOUND_STATEMENT)
     {
         analyze_compound_statement(semantic, body);
     }
+
+    node->meta.function.locals = semantic->locals;
+
+    semantic->locals = NULL;
 
     semantic_exit_scope(semantic);
 }
@@ -237,6 +270,7 @@ bool semantic_init(semantic_state_t *semantic)
     semantic->global_scope = (semantic_scope_t){0};
     semantic->global_scope.depth = 0;
     semantic->global_scope.parent = NULL;
+    semantic->locals = NULL;
     symtable_init(&semantic->global_scope.symtable);
     return true;
 }
