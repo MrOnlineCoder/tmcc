@@ -291,6 +291,13 @@ void lexer_run(lexer_state_t *lexer)
             continue;
         }
 
+        if (c == '!')
+        {
+            lexer_add_token(lexer, TOKEN_BANG, 1);
+            lexer_advance(lexer);
+            continue;
+        }
+
         if (c == '<')
         {
             lexer_add_token(lexer, TOKEN_LT, 1);
@@ -471,6 +478,8 @@ const char *token_type_to_string(token_type_t type)
         return "CHAR";
     case TOKEN_EOF:
         return "EOF";
+    case TOKEN_BANG:
+        return "BANG";
     default:
         return "UNKNOWN";
     }

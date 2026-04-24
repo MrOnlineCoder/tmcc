@@ -14,6 +14,8 @@ typedef struct
     ast_node_t *ast;
 
     ast_node_t *current_function;
+
+    int counter;
 } codegen_state_t;
 
 bool codegen_init(codegen_state_t *cg);

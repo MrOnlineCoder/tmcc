@@ -30,6 +30,8 @@ typedef enum
 
     AST_ASSIGN_STATEMENT,
 
+    AST_IF_STATEMENT,
+
     AST_DECLARATION,
 
     AST_VARIABLE
@@ -41,6 +43,25 @@ typedef enum
     AST_BIN_OP_SUB,
     AST_BIN_OP_MUL,
     AST_BIN_OP_DIV,
+
+    AST_BIN_OP_EQ,
+    AST_BIN_OP_NEQ,
+
+    AST_BIN_OP_LT,
+    AST_BIN_OP_GT,
+    AST_BIN_OP_LTE,
+    AST_BIN_OP_GTE,
+
+    AST_BIN_OP_AND,
+    AST_BIN_OP_OR,
+
+    AST_BIN_OP_SHL,
+    AST_BIN_OP_SHR,
+    AST_BIN_OP_MOD,
+
+    AST_BIN_OP_BITAND,
+    AST_BIN_OP_BITOR,
+    AST_BIN_OP_BITXOR,
 } ast_bin_op_type_t;
 
 struct ast_node_s
@@ -102,5 +123,7 @@ void ast_dump(ast_node_t *node, int indent);
 void ast_free_deep(ast_node_t *node);
 
 void ast_free(ast_node_t *node);
+
+const char *bin_op_to_string(ast_bin_op_type_t op_type);
 
 #endif

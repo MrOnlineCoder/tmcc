@@ -96,6 +96,7 @@ bool parser_init(parser_state_t *parser)
 
 /*Forward declarations*/
 static ast_node_t *parse_expression(parser_state_t *parser);
+static ast_node_t *parse_compound_statement(parser_state_t *parser);
 /*End of forward declarations*/
 
 static ast_node_t *parse_integer_literal(parser_state_t *parser)
@@ -110,7 +111,7 @@ static ast_node_t *parse_integer_literal(parser_state_t *parser)
 
     node->meta.integer_literal.value = atoi(buffer);
 
-    free(buffer);
+    free((char *)buffer);
 
     return node;
 }
@@ -241,6 +242,119 @@ static ast_node_t *parse_additive_expression(parser_state_t *parser)
     return node;
 }
 
+static ast_node_t *parse_relational_expression(parser_state_t *parser)
+{
+    ast_node_t *node = parser_make_node(parser, AST_BINARY_OPERATOR);
+
+    ast_node_t *left = parse_additive_expression(parser);
+
+    if (!left)
+    {
+        return NULL;
+    }
+
+    ast_add_child(node, left);
+
+    while (parser_test(parser, TOKEN_LT) || parser_test(parser, TOKEN_GT))
+    {
+        const token_t *op_token = parser_next(parser);
+
+        ast_bin_op_type_t op_type;
+
+        if (op_token->type == TOKEN_LT)
+        {
+            op_type = AST_BIN_OP_LT;
+
+            if (parser_test(parser, TOKEN_EQUAL))
+            {
+                parser_next(parser);
+                op_type = AST_BIN_OP_LTE;
+            }
+        }
+        else
+        {
+            op_type = AST_BIN_OP_GT;
+
+            if (parser_test(parser, TOKEN_EQUAL))
+            {
+                parser_next(parser);
+                op_type = AST_BIN_OP_GTE;
+            }
+        }
+
+        node->meta.binary_op.op_type = op_type;
+
+        ast_node_t *right = parse_additive_expression(parser);
+        if (!right)
+        {
+            return NULL;
+        }
+
+        ast_add_child(node, right);
+    }
+
+    if (node->children_count == 1)
+    {
+        ast_free(node);
+        return left;
+    }
+
+    return node;
+}
+
+static ast_node_t *parse_equality_expression(parser_state_t *parser)
+{
+    ast_node_t *node = parser_make_node(parser, AST_BINARY_OPERATOR);
+
+    ast_node_t *left = parse_relational_expression(parser);
+
+    if (!left)
+    {
+        return NULL;
+    }
+
+    ast_add_child(node, left);
+
+    while (parser_test(parser, TOKEN_EQUAL) || parser_test(parser, TOKEN_BANG))
+    {
+        const token_t *op_token = parser_next(parser);
+
+        ast_bin_op_type_t op_type;
+
+        if (op_token->type == TOKEN_EQUAL)
+        {
+            op_type = AST_BIN_OP_EQ;
+        }
+        else
+        {
+            if (!parser_expect(parser, TOKEN_EQUAL))
+            {
+                return NULL;
+            }
+
+            op_type = AST_BIN_OP_NEQ;
+        }
+
+        node->meta.binary_op.op_type = op_type;
+
+        ast_node_t *right = parse_relational_expression(parser);
+        if (!right)
+        {
+            return NULL;
+        }
+
+        ast_add_child(node, right);
+    }
+
+    if (node->children_count == 1)
+    {
+        ast_free(node);
+        return left;
+    }
+
+    return node;
+}
+
 static ast_node_t *parse_expression(parser_state_t *parser)
 {
     // ast_node_t *node = parser_make_node(parser, AST_EXPRESSION);
@@ -253,7 +367,7 @@ static ast_node_t *parse_expression(parser_state_t *parser)
     // ast_add_child(node, v);
 
     // return node;
-    return parse_additive_expression(parser);
+    return parse_equality_expression(parser);
 }
 
 static ast_node_t *parse_return_statement(parser_state_t *parser)
@@ -344,6 +458,48 @@ static ast_node_t *parse_declaration(parser_state_t *parser)
     return node;
 }
 
+static ast_node_t *parse_if_statement(parser_state_t *parser)
+{
+    if (!parser_expect(parser, TOKEN_KW_IF))
+        return NULL;
+
+    if (!parser_expect(parser, TOKEN_LPAREN))
+        return NULL;
+
+    ast_node_t *node = parser_make_node(parser, AST_IF_STATEMENT);
+
+    ast_node_t *condition = parse_expression(parser);
+
+    if (!condition)
+        return NULL;
+
+    ast_add_child(node, condition);
+
+    if (!parser_expect(parser, TOKEN_RPAREN))
+        return NULL;
+
+    ast_node_t *then_branch = parse_compound_statement(parser);
+
+    if (!then_branch)
+        return NULL;
+
+    ast_add_child(node, then_branch);
+
+    if (parser_test(parser, TOKEN_KW_ELSE))
+    {
+        parser_next(parser);
+
+        ast_node_t *else_branch = parse_compound_statement(parser);
+
+        if (!else_branch)
+            return NULL;
+
+        ast_add_child(node, else_branch);
+    }
+
+    return node;
+}
+
 static ast_node_t *parse_compound_statement(parser_state_t *parser)
 {
     ast_node_t *node = parser_make_node(parser, AST_COMPOUND_STATEMENT);
@@ -357,6 +513,10 @@ static ast_node_t *parse_compound_statement(parser_state_t *parser)
         if (parser_test(parser, TOKEN_KW_RETURN))
         {
             stmt = parse_return_statement(parser);
+        }
+        else if (parser_test(parser, TOKEN_KW_IF))
+        {
+            stmt = parse_if_statement(parser);
         }
         else
         {

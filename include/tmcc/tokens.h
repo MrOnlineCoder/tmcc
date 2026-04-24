@@ -37,6 +37,7 @@ typedef enum
     TOKEN_SEMICOLON,
     TOKEN_COMMA,
     TOKEN_COLON,
+    TOKEN_BANG,
 
     TOKEN_EOF,
 } token_type_t;

@@ -1,7 +1,10 @@
 int main()
 {
-    int x = 2;
-    int y = 1;
+    int x;
+    int y;
+
+    x = 2;
+    y = 4;
 
     if (x > y)
     {

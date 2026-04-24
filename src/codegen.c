@@ -47,9 +47,15 @@ static void emit_label(codegen_state_t *cg, const char *code, ...)
     cg->output_length += written + 1;
 }
 
+static int next_label(codegen_state_t *cg)
+{
+    return cg->counter++;
+}
+
 /* Forward declarations */
 static void codegen_expression(codegen_state_t *cg, ast_node_t *node);
 static void codegen_address(codegen_state_t *cg, ast_node_t *node);
+static void codegen_compound_statement(codegen_state_t *cg, ast_node_t *node);
 /* End of forward declarations*/
 
 bool codegen_init(codegen_state_t *cg)
@@ -58,6 +64,7 @@ bool codegen_init(codegen_state_t *cg)
     memset(cg->output, 0, sizeof(cg->output));
     cg->ast = NULL;
     cg->current_function = NULL;
+    cg->counter = 1;
     return true;
 }
 
@@ -87,7 +94,7 @@ static void codegen_binary_op(codegen_state_t *cg, ast_node_t *node)
     ast_node_t *lhs = node->children[0];
     ast_node_t *rhs = node->children[1];
 
-    emit_code(cg, "; binary operator '%s'", node->meta.binary_op.op_type == AST_BIN_OP_ADD ? "+" : "-");
+    emit_code(cg, "; binary operator '%s'", bin_op_to_string(node->meta.binary_op.op_type));
 
     codegen_expression(cg, lhs);
     emit_code(cg, "push rax");
@@ -96,13 +103,59 @@ static void codegen_binary_op(codegen_state_t *cg, ast_node_t *node)
 
     emit_code(cg, "pop rbx"); // rbx == lhs
 
-    if (node->meta.binary_op.op_type == AST_BIN_OP_ADD)
+    ast_bin_op_type_t op_type = node->meta.binary_op.op_type;
+
+    switch (op_type)
     {
+    case AST_BIN_OP_ADD:
         emit_code(cg, "add rax, rbx");
-    }
-    else
-    {
+        break;
+    case AST_BIN_OP_SUB:
         emit_code(cg, "sub rax, rbx");
+        break;
+    case AST_BIN_OP_MUL:
+        emit_code(cg, "imul rax, rbx");
+        break;
+    case AST_BIN_OP_DIV:
+        emit_code(cg, "xor rdx, rdx");
+        emit_code(cg, "div rbx");
+        break;
+    case AST_BIN_OP_EQ:
+    case AST_BIN_OP_NEQ:
+    case AST_BIN_OP_LT:
+    case AST_BIN_OP_GT:
+    case AST_BIN_OP_LTE:
+    case AST_BIN_OP_GTE:
+    {
+        emit_code(cg, "cmp rbx, rax");
+        if (op_type == AST_BIN_OP_EQ)
+        {
+            emit_code(cg, "sete al");
+        }
+        else if (op_type == AST_BIN_OP_NEQ)
+        {
+            emit_code(cg, "setne al");
+        }
+        else if (op_type == AST_BIN_OP_LT)
+        {
+            emit_code(cg, "setl al");
+        }
+        else if (op_type == AST_BIN_OP_GT)
+        {
+            emit_code(cg, "setg al");
+        }
+        else if (op_type == AST_BIN_OP_LTE)
+        {
+            emit_code(cg, "setle al");
+        }
+        else if (op_type == AST_BIN_OP_GTE)
+        {
+            emit_code(cg, "setge al");
+        }
+
+        emit_code(cg, "movzx rax, al");
+    }
+    break;
     }
 }
 
@@ -169,6 +222,35 @@ static void codegen_assign_statement(codegen_state_t *cg, ast_node_t *node)
     emit_code(cg, "mov [rbx], rax");
 }
 
+static void codegen_if_statement(codegen_state_t *cg, ast_node_t *node)
+{
+    if (node->type != AST_IF_STATEMENT)
+        return;
+
+    ast_node_t *condition = node->children[0];
+    ast_node_t *then_branch = node->children[1];
+    ast_node_t *else_branch = node->children_count > 2 ? node->children[2] : NULL;
+
+    int id = next_label(cg);
+
+    emit_code(cg, "; if statement");
+    codegen_expression(cg, condition);
+
+    emit_code(cg, "cmp rax, 0"); // rax == 0 means condition is false
+    emit_code(cg, "je .L.else.%d", id);
+
+    emit_label(cg, ".L.then.%d:", id);
+    codegen_compound_statement(cg, then_branch);
+
+    emit_label(cg, ".L.else.%d:", id);
+    if (else_branch)
+    {
+        codegen_compound_statement(cg, else_branch);
+    }
+
+    emit_label(cg, ".L.end.%d:", id);
+}
+
 static void codegen_compound_statement(codegen_state_t *cg, ast_node_t *node)
 {
     if (node->type != AST_COMPOUND_STATEMENT)
@@ -185,6 +267,10 @@ static void codegen_compound_statement(codegen_state_t *cg, ast_node_t *node)
         else if (stmt->type == AST_ASSIGN_STATEMENT)
         {
             codegen_assign_statement(cg, stmt);
+        }
+        else if (stmt->type == AST_IF_STATEMENT)
+        {
+            codegen_if_statement(cg, stmt);
         }
         else if (stmt->type == AST_COMPOUND_STATEMENT)
         {

@@ -87,6 +87,7 @@ static symbol_t *semantic_lookup(semantic_state_t *semantic, const char *name)
 static void analyze_binary_operator(semantic_state_t *semantic, ast_node_t *node);
 static void analyze_expression(semantic_state_t *semantic, ast_node_t *node);
 static void analyze_variable(semantic_state_t *semantic, ast_node_t *node);
+static void analyze_compound_statement(semantic_state_t *semantic, ast_node_t *node);
 /*------*/
 
 static bool is_valid_lvalue(ast_node_t *node)
@@ -170,6 +171,24 @@ static void analyze_return_statement(semantic_state_t *semantic, ast_node_t *nod
     }
 }
 
+static void analyze_if_statement(semantic_state_t *semantic, ast_node_t *node)
+{
+    ast_node_t *condition = node->children[0];
+    ast_node_t *then_branch = node->children[1];
+    ast_node_t *else_branch = node->children_count > 2 ? node->children[2] : NULL;
+
+    analyze_expression(semantic, condition);
+
+    // TODO: check that condition is of integer type or boolean-like
+
+    analyze_compound_statement(semantic, then_branch);
+
+    if (else_branch)
+    {
+        analyze_compound_statement(semantic, else_branch);
+    }
+}
+
 static void analyze_assign_statement(semantic_state_t *semantic, ast_node_t *node)
 {
     if (node->children_count != 2)
@@ -239,6 +258,14 @@ static void analyze_compound_statement(semantic_state_t *semantic, ast_node_t *n
         else if (child->type == AST_ASSIGN_STATEMENT)
         {
             analyze_assign_statement(semantic, child);
+        }
+        else if (child->type == AST_IF_STATEMENT)
+        {
+            analyze_if_statement(semantic, child);
+        }
+        else
+        {
+            semantic_error(semantic, "unexpected node type %d in compound statement at line %zu:%zu", child->type, child->start_token->line, child->start_token->column);
         }
     }
 }

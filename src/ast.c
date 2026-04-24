@@ -48,6 +48,8 @@ static const char *ast_type_to_string(ast_node_type_t type)
         return "DECLARATION";
     case AST_VARIABLE:
         return "VARIABLE";
+    case AST_IF_STATEMENT:
+        return "IF_STATEMENT";
     default:
         return "UNKNOWN";
     }
@@ -92,4 +94,49 @@ void ast_free_deep(ast_node_t *node)
 void ast_free(ast_node_t *node)
 {
     free(node);
+}
+
+const char *bin_op_to_string(ast_bin_op_type_t op_type)
+{
+    switch (op_type)
+    {
+    case AST_BIN_OP_ADD:
+        return "+";
+    case AST_BIN_OP_SUB:
+        return "-";
+    case AST_BIN_OP_MUL:
+        return "*";
+    case AST_BIN_OP_DIV:
+        return "/";
+    case AST_BIN_OP_EQ:
+        return "==";
+    case AST_BIN_OP_NEQ:
+        return "!=";
+    case AST_BIN_OP_LT:
+        return "<";
+    case AST_BIN_OP_GT:
+        return ">";
+    case AST_BIN_OP_LTE:
+        return "<=";
+    case AST_BIN_OP_GTE:
+        return ">=";
+    case AST_BIN_OP_AND:
+        return "&&";
+    case AST_BIN_OP_OR:
+        return "||";
+    case AST_BIN_OP_SHL:
+        return "<<";
+    case AST_BIN_OP_SHR:
+        return ">>";
+    case AST_BIN_OP_MOD:
+        return "%%";
+    case AST_BIN_OP_BITAND:
+        return "&";
+    case AST_BIN_OP_BITOR:
+        return "|";
+    case AST_BIN_OP_BITXOR:
+        return "^";
+    default:
+        return "unknown";
+    }
 }
