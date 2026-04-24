@@ -12,6 +12,8 @@ typedef struct
     size_t output_length;
 
     ast_node_t *ast;
+
+    ast_node_t *current_function;
 } codegen_state_t;
 
 bool codegen_init(codegen_state_t *cg);

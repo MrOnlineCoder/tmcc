@@ -10,7 +10,7 @@ ctype_t CTYPE_BUILTIN_VOID = {
 ctype_t CTYPE_BUILTIN_INT = {
     .kind = CTYPE_KIND_INT,
     .size = 4,
-    .alignment = 4};
+    .alignment = 8};
 
 ctype_t CTYPE_BUILTIN_CHAR = {
     .kind = CTYPE_KIND_CHAR,

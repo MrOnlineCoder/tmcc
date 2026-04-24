@@ -103,7 +103,7 @@ static void analyze_declaration(semantic_state_t *semantic, ast_node_t *node)
     if (existing_sym)
     {
         semantic_error(semantic, "redeclaration of variable '%s' at line %zu:%zu", name, node->start_token->line, node->start_token->column);
-        free(name);
+        free((char *)name);
         return;
     }
 
@@ -187,6 +187,8 @@ static void analyze_assign_statement(semantic_state_t *semantic, ast_node_t *nod
         return;
     }
 
+    analyze_variable(semantic, lhs);
+
     analyze_expression(semantic, rhs);
 
     node->expr_type = rhs->expr_type;
@@ -233,6 +235,10 @@ static void analyze_compound_statement(semantic_state_t *semantic, ast_node_t *n
             semantic_enter_scope(semantic);
             analyze_compound_statement(semantic, child);
             semantic_exit_scope(semantic);
+        }
+        else if (child->type == AST_ASSIGN_STATEMENT)
+        {
+            analyze_assign_statement(semantic, child);
         }
     }
 }

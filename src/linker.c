@@ -28,7 +28,7 @@ bool linker_assemble(
 
     fclose(asm_file);
 
-    return true;
+    // return true;
 
     int nasm_pid = fork();
 
