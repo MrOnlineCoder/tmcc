@@ -21,45 +21,45 @@ Base compiler parts:
 - [x] Semantic analyzer
 - [x] Code generator
 - [x] Assembler / linker stage
-- [] Simple AST optimizer
-- [] Standard library implementation
-- [] Command-line flags
-- [] Preprocessor
-- [] Self-hosting compiler
-- [] Primitive register allocation
+- [ ] Simple AST optimizer
+- [ ] Standard library implementation
+- [ ] Command-line flags
+- [ ] Preprocessor
+- [ ] Self-hosting compiler
+- [ ] Primitive register allocation
 
 Language features:
 
 - [x] Primitive types (int, char, float, double)
 - [x] Arithmetic binary operators (`+`, `-`, `*`, `/`)
-- [] Bitwise operators (`&`, `|`, `^`, `~`, `<<`, `>>`)
-- [] Logical operators (`&&`, `||`, `!`)
+- [ ] Bitwise operators (`&`, `|`, `^`, `~`, `<<`, `>>`)
+- [ ] Logical operators (`&&`, `||`, `!`)
 - [x] Comparison operators (`==`, `!=`, `<`, `>`, `<=`, `>=`)
 - [x] Variable declarations
-- [] Variable initializations
-- [] Pointers
-- [] Arrays
-- [] Structs
-- [] Unions
-- [] Enums
-- [] Functions declarations
+- [ ] Variable initializations
+- [ ] Pointers
+- [ ] Arrays
+- [ ] Structs
+- [ ] Unions
+- [ ] Enums
+- [ ] Functions declarations
 - [x] `if` / `else`
 - [x] `while`
-- [] `for`
-- [] `do` / `while`
-- [] `switch` / `case`
-- [] `goto` / labels
-- [] `break` / `continue`
+- [ ] `for`
+- [ ] `do` / `while`
+- [ ] `switch` / `case`
+- [ ] `goto` / labels
+- [ ] `break` / `continue`
 - [x] `return`
-- [] `sizeof`
-- [] Type qualifiers (`const`, `volatile`, `restrict`)
-- [] Storage class specifiers (`static`, `extern`, `auto`, `register`)
-- [] Custom typedefs
-- [] Dereference and address-of operators (`*`, `&`)
-- [] Function pointers
-- [] Variadic arguments
-- [] Preprocessor directives (`#include`, `#define`, `#ifdef`, `#endif`)
+- [ ] `sizeof`
+- [ ] Type qualifiers (`const`, `volatile`, `restrict`)
+- [ ] Storage class specifiers (`static`, `extern`, `auto`, `register`)
+- [ ] Custom typedefs
+- [ ] Dereference and address-of operators (`*`, `&`)
+- [ ] Function pointers
+- [ ] Variadic arguments
+- [ ] Preprocessor directives (`#include`, `#define`, `#ifdef`, `#endif`)
 - [x] Comments
-- [] Support for multiple source files
-- [] Support for header files
-- [] Attributes (`__attribute__((...))`)
+- [ ] Support for multiple source files
+- [ ] Support for header files
+- [ ] Attributes (`__attribute__((...))`)
