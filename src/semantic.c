@@ -58,10 +58,9 @@ static semantic_scope_t *semantic_exit_scope(semantic_state_t *semantic)
     semantic_scope_t *exiting_scope = semantic->current_scope;
     semantic->current_scope = exiting_scope->parent;
 
-    free(exiting_scope);
-
     semantic_debug(semantic, "exited scope at depth %zu, now at depth %zu",
                    exiting_scope->depth, semantic->current_scope->depth);
+    free(exiting_scope);
 
     return exiting_scope;
 }
@@ -87,7 +86,7 @@ static symbol_t *semantic_lookup(semantic_state_t *semantic, const char *name)
 static void analyze_binary_operator(semantic_state_t *semantic, ast_node_t *node);
 static void analyze_expression(semantic_state_t *semantic, ast_node_t *node);
 static void analyze_variable(semantic_state_t *semantic, ast_node_t *node);
-static void analyze_compound_statement(semantic_state_t *semantic, ast_node_t *node);
+static void analyze_compound_statement(semantic_state_t *semantic, ast_node_t *node, bool needs_new_scope);
 /*------*/
 
 static bool is_valid_lvalue(ast_node_t *node)
@@ -104,6 +103,13 @@ static void analyze_declaration(semantic_state_t *semantic, ast_node_t *node)
     if (existing_sym)
     {
         semantic_error(semantic, "redeclaration of variable '%s' at line %zu:%zu", name, node->start_token->line, node->start_token->column);
+        free((char *)name);
+        return;
+    }
+
+    if (node->meta.declaration.type->kind == CTYPE_KIND_VOID)
+    {
+        semantic_error(semantic, "variable '%s' cannot be of type void at line %zu:%zu", name, node->start_token->line, node->start_token->column);
         free((char *)name);
         return;
     }
@@ -181,11 +187,11 @@ static void analyze_if_statement(semantic_state_t *semantic, ast_node_t *node)
 
     // TODO: check that condition is of integer type or boolean-like
 
-    analyze_compound_statement(semantic, then_branch);
+    analyze_compound_statement(semantic, then_branch, true);
 
     if (else_branch)
     {
-        analyze_compound_statement(semantic, else_branch);
+        analyze_compound_statement(semantic, else_branch, true);
     }
 }
 
@@ -213,6 +219,16 @@ static void analyze_assign_statement(semantic_state_t *semantic, ast_node_t *nod
     node->expr_type = rhs->expr_type;
 }
 
+static void analyze_while_statement(semantic_state_t *semantic, ast_node_t *node)
+{
+    ast_node_t *condition = node->children[0];
+    ast_node_t *body = node->children[1];
+
+    analyze_expression(semantic, condition);
+
+    analyze_compound_statement(semantic, body, true);
+}
+
 static void analyze_variable(semantic_state_t *semantic, ast_node_t *node)
 {
     static char var_name[MAX_SYMBOL_NAME_LENGTH];
@@ -235,8 +251,13 @@ static void analyze_variable(semantic_state_t *semantic, ast_node_t *node)
                    node->start_token->line, node->start_token->column);
 }
 
-static void analyze_compound_statement(semantic_state_t *semantic, ast_node_t *node)
+static void analyze_compound_statement(semantic_state_t *semantic, ast_node_t *node, bool needs_new_scope)
 {
+    if (needs_new_scope)
+    {
+        semantic_enter_scope(semantic);
+    }
+
     for (int i = 0; i < node->children_count; i++)
     {
         ast_node_t *child = node->children[i];
@@ -251,9 +272,7 @@ static void analyze_compound_statement(semantic_state_t *semantic, ast_node_t *n
         }
         else if (child->type == AST_COMPOUND_STATEMENT)
         {
-            semantic_enter_scope(semantic);
-            analyze_compound_statement(semantic, child);
-            semantic_exit_scope(semantic);
+            analyze_compound_statement(semantic, child, true);
         }
         else if (child->type == AST_ASSIGN_STATEMENT)
         {
@@ -263,10 +282,19 @@ static void analyze_compound_statement(semantic_state_t *semantic, ast_node_t *n
         {
             analyze_if_statement(semantic, child);
         }
+        else if (child->type == AST_WHILE_STATEMENT)
+        {
+            analyze_while_statement(semantic, child);
+        }
         else
         {
             semantic_error(semantic, "unexpected node type %d in compound statement at line %zu:%zu", child->type, child->start_token->line, child->start_token->column);
         }
+    }
+
+    if (needs_new_scope)
+    {
+        semantic_exit_scope(semantic);
     }
 }
 
@@ -280,7 +308,7 @@ static void analyze_function_definition(semantic_state_t *semantic, ast_node_t *
 
     if (body->type == AST_COMPOUND_STATEMENT)
     {
-        analyze_compound_statement(semantic, body);
+        analyze_compound_statement(semantic, body, false);
     }
 
     node->meta.function.locals = semantic->locals;

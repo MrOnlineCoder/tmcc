@@ -251,6 +251,27 @@ static void codegen_if_statement(codegen_state_t *cg, ast_node_t *node)
     emit_label(cg, ".L.end.%d:", id);
 }
 
+static void codegen_while_statement(codegen_state_t *cg, ast_node_t *node)
+{
+    if (node->type != AST_WHILE_STATEMENT)
+        return;
+
+    ast_node_t *condition = node->children[0];
+    ast_node_t *body = node->children[1];
+
+    int id = next_label(cg);
+
+    emit_label(cg, ".L.while.%d:", id);
+    codegen_expression(cg, condition);
+    emit_code(cg, "cmp rax, 0");       // rax == 0 means condition is false
+    emit_code(cg, "je .L.end.%d", id); // jump to end if condition is false
+
+    codegen_compound_statement(cg, body);
+    emit_code(cg, "jmp .L.while.%d", id); // repeat the loop
+
+    emit_label(cg, ".L.end.%d:", id);
+}
+
 static void codegen_compound_statement(codegen_state_t *cg, ast_node_t *node)
 {
     if (node->type != AST_COMPOUND_STATEMENT)
@@ -271,6 +292,10 @@ static void codegen_compound_statement(codegen_state_t *cg, ast_node_t *node)
         else if (stmt->type == AST_IF_STATEMENT)
         {
             codegen_if_statement(cg, stmt);
+        }
+        else if (stmt->type == AST_WHILE_STATEMENT)
+        {
+            codegen_while_statement(cg, stmt);
         }
         else if (stmt->type == AST_COMPOUND_STATEMENT)
         {

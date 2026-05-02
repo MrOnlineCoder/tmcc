@@ -50,6 +50,8 @@ static const char *ast_type_to_string(ast_node_type_t type)
         return "VARIABLE";
     case AST_IF_STATEMENT:
         return "IF_STATEMENT";
+    case AST_WHILE_STATEMENT:
+        return "WHILE_STATEMENT";
     default:
         return "UNKNOWN";
     }

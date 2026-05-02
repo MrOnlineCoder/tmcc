@@ -1,7 +1,10 @@
 int main()
 {
-    int c = 0;
-    int x = 0;
+    int c;
+    int x;
+
+    c = 0;
+    x = 0;
 
     while (c < 5)
     {

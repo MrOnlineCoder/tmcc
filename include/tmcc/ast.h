@@ -32,6 +32,8 @@ typedef enum
 
     AST_IF_STATEMENT,
 
+    AST_WHILE_STATEMENT,
+
     AST_DECLARATION,
 
     AST_VARIABLE

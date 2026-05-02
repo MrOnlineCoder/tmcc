@@ -11,3 +11,55 @@ The aim is to significantly boost my skills in C programming, compiler design an
 3. Compiler should produce NASM assembly code, which is then assembled and linked using NASM.
 4. Ideal goal - self-hosting compiler.
 5. **No LLVM!** LLVM is great, but what's the fun then if all the backend will be done by it?
+
+## TODO
+
+Base compiler parts:
+
+- [x] Tokenizer
+- [x] Base parser / AST
+- [x] Semantic analyzer
+- [x] Code generator
+- [x] Assembler / linker stage
+- [] Simple AST optimizer
+- [] Standard library implementation
+- [] Command-line flags
+- [] Preprocessor
+- [] Self-hosting compiler
+- [] Primitive register allocation
+
+Language features:
+
+- [x] Primitive types (int, char, float, double)
+- [x] Arithmetic binary operators (`+`, `-`, `*`, `/`)
+- [] Bitwise operators (`&`, `|`, `^`, `~`, `<<`, `>>`)
+- [] Logical operators (`&&`, `||`, `!`)
+- [x] Comparison operators (`==`, `!=`, `<`, `>`, `<=`, `>=`)
+- [x] Variable declarations
+- [] Variable initializations
+- [] Pointers
+- [] Arrays
+- [] Structs
+- [] Unions
+- [] Enums
+- [] Functions declarations
+- [x] `if` / `else`
+- [x] `while`
+- [] `for`
+- [] `do` / `while`
+- [] `switch` / `case`
+- [] `goto` / labels
+- [] `break` / `continue`
+- [x] `return`
+- [] `sizeof`
+- [] Type qualifiers (`const`, `volatile`, `restrict`)
+- [] Storage class specifiers (`static`, `extern`, `auto`, `register`)
+- [] Custom typedefs
+- [] Dereference and address-of operators (`*`, `&`)
+- [] Function pointers
+- [] Variadic arguments
+- [] Preprocessor directives (`#include`, `#define`, `#ifdef`, `#endif`)
+- [x] Comments
+- [] Support for multiple source files
+- [] Support for header files
+- [] Attributes (`__attribute__((...))`)

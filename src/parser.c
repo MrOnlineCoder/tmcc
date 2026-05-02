@@ -500,6 +500,36 @@ static ast_node_t *parse_if_statement(parser_state_t *parser)
     return node;
 }
 
+static ast_node_t *parse_while_statement(parser_state_t *parser)
+{
+    if (!parser_expect(parser, TOKEN_KW_WHILE))
+        return NULL;
+
+    if (!parser_expect(parser, TOKEN_LPAREN))
+        return NULL;
+
+    ast_node_t *node = parser_make_node(parser, AST_WHILE_STATEMENT);
+
+    ast_node_t *condition = parse_expression(parser);
+
+    if (!condition)
+        return NULL;
+
+    ast_add_child(node, condition);
+
+    if (!parser_expect(parser, TOKEN_RPAREN))
+        return NULL;
+
+    ast_node_t *body = parse_compound_statement(parser);
+
+    if (!body)
+        return NULL;
+
+    ast_add_child(node, body);
+
+    return node;
+}
+
 static ast_node_t *parse_compound_statement(parser_state_t *parser)
 {
     ast_node_t *node = parser_make_node(parser, AST_COMPOUND_STATEMENT);
@@ -517,6 +547,10 @@ static ast_node_t *parse_compound_statement(parser_state_t *parser)
         else if (parser_test(parser, TOKEN_KW_IF))
         {
             stmt = parse_if_statement(parser);
+        }
+        else if (parser_test(parser, TOKEN_KW_WHILE))
+        {
+            stmt = parse_while_statement(parser);
         }
         else
         {

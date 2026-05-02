@@ -4,7 +4,7 @@
 #include <tmcc/ast.h>
 #include <string.h>
 
-#define CODEGEN_MAX_OUTPUT 8192
+#define CODEGEN_MAX_OUTPUT 16384
 
 typedef struct
 {

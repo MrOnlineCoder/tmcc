@@ -99,6 +99,18 @@ static token_type_t lexer_detect_keyword_or_id(const char *start, size_t length)
         return TOKEN_KW_STATIC;
     if (strncmp(start, "const", 5) == 0)
         return TOKEN_KW_CONST;
+    if (strncmp(start, "while", 5) == 0)
+        return TOKEN_KW_WHILE;
+    if (strncmp(start, "char", 4) == 0)
+        return TOKEN_KW_CHAR;
+    if (strncmp(start, "short", 5) == 0)
+        return TOKEN_KW_SHORT;
+    if (strncmp(start, "long", 4) == 0)
+        return TOKEN_KW_LONG;
+    if (strncmp(start, "float", 5) == 0)
+        return TOKEN_KW_FLOAT;
+    if (strncmp(start, "double", 6) == 0)
+        return TOKEN_KW_DOUBLE;
 
     return TOKEN_IDENTIFIER;
 }
