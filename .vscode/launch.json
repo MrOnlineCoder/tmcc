@@ -8,7 +8,7 @@
       "request": "launch",
       "breakpointMode": "file",
       "program": "${workspaceFolder}/tmcc",
-      "args": ["tests/02_vars_expr.c"]
+      "args": ["tests/06_bin_ops.c"]
     }
   ]
 }

@@ -7,6 +7,9 @@ OBJS=obj/lexer.o obj/main.o obj/error.o obj/parser.o obj/ast.o obj/semantic.o ob
 prepare:
 	mkdir -p obj/
 
+clean:
+	rm -rf obj/ tmcc
+
 obj/lexer.o: src/lexer.c include/tmcc/lexer.h include/tmcc/tokens.h
 	$(CC) $(CFLAGS) -c src/lexer.c -o obj/lexer.o
 

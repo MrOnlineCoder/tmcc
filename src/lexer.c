@@ -268,6 +268,34 @@ void lexer_run(lexer_state_t *lexer)
             continue;
         }
 
+        if (c == '&')
+        {
+            lexer_add_token(lexer, TOKEN_AMPERSAND, 1);
+            lexer_advance(lexer);
+            continue;
+        }
+
+        if (c == '|')
+        {
+            lexer_add_token(lexer, TOKEN_PIPE, 1);
+            lexer_advance(lexer);
+            continue;
+        }
+
+        if (c == '^')
+        {
+            lexer_add_token(lexer, TOKEN_CARET, 1);
+            lexer_advance(lexer);
+            continue;
+        }
+
+        if (c == '~')
+        {
+            lexer_add_token(lexer, TOKEN_TILDE, 1);
+            lexer_advance(lexer);
+            continue;
+        }
+
         if (c == '/')
         {
             if (lexer->pos + 1 < lexer->src_length && lexer->src[lexer->pos + 1] == '*')

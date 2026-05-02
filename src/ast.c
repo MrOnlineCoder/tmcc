@@ -64,12 +64,28 @@ void ast_dump(ast_node_t *node, int indent)
 
     char indent_str[64];
 
+    char meta_str[256] = {0};
+
     for (int i = 0; i < indent; i++)
     {
         indent_str[i] = ' ';
     }
     indent_str[indent] = '\0';
-    printf("%s%s\n", indent_str, ast_type_to_string(node->type));
+
+    if (node->type == AST_BINARY_OPERATOR)
+    {
+        snprintf(meta_str, sizeof(meta_str), " (%s)", bin_op_to_string(node->meta.binary_op.op_type));
+    }
+    else if (node->type == AST_VARIABLE)
+    {
+        snprintf(meta_str, sizeof(meta_str), " (%s)", node->meta.variable.sym ? node->meta.variable.sym->name : "unknown");
+    }
+    else if (node->type == AST_INTEGER_LITERAL)
+    {
+        snprintf(meta_str, sizeof(meta_str), " (%d)", node->meta.integer_literal.value);
+    }
+
+    printf("%s%s%s\n", indent_str, ast_type_to_string(node->type), meta_str);
     for (int i = 0; i < node->children_count; i++)
     {
         if (!node->children[i])

@@ -156,6 +156,26 @@ static void codegen_binary_op(codegen_state_t *cg, ast_node_t *node)
         emit_code(cg, "movzx rax, al");
     }
     break;
+
+    case AST_BIN_OP_BITAND:
+        emit_code(cg, "and rax, rbx");
+        break;
+    case AST_BIN_OP_BITOR:
+        emit_code(cg, "or rax, rbx");
+        break;
+    case AST_BIN_OP_BITXOR:
+        emit_code(cg, "xor rax, rbx");
+        break;
+    case AST_BIN_OP_SHR:
+        emit_code(cg, "shr rbx, rax");
+        emit_code(cg, "mov rax, rbx");
+        break;
+    case AST_BIN_OP_SHL:
+        emit_code(cg, "shl rbx, rax");
+        emit_code(cg, "mov rax, rbx");
+        break;
+    default:
+        break;
     }
 }
 

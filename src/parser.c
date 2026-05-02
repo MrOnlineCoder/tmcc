@@ -82,6 +82,15 @@ static bool parser_test(parser_state_t *parser, token_type_t type)
     return token && token->type == type;
 }
 
+static bool parser_test_nth(parser_state_t *parser, token_type_t type, size_t n)
+{
+    if (parser->token_index + n >= parser->lexer->token_count)
+        return false;
+
+    const token_t *token = &parser->lexer->tokens[parser->token_index + n];
+    return token && token->type == type;
+}
+
 bool parser_init(parser_state_t *parser)
 {
     parser->root = NULL;
@@ -97,6 +106,7 @@ bool parser_init(parser_state_t *parser)
 /*Forward declarations*/
 static ast_node_t *parse_expression(parser_state_t *parser);
 static ast_node_t *parse_compound_statement(parser_state_t *parser);
+static ast_node_t *parse_shift_expression(parser_state_t *parser);
 /*End of forward declarations*/
 
 static ast_node_t *parse_integer_literal(parser_state_t *parser)
@@ -246,7 +256,7 @@ static ast_node_t *parse_relational_expression(parser_state_t *parser)
 {
     ast_node_t *node = parser_make_node(parser, AST_BINARY_OPERATOR);
 
-    ast_node_t *left = parse_additive_expression(parser);
+    ast_node_t *left = parse_shift_expression(parser);
 
     if (!left)
     {
@@ -284,7 +294,7 @@ static ast_node_t *parse_relational_expression(parser_state_t *parser)
 
         node->meta.binary_op.op_type = op_type;
 
-        ast_node_t *right = parse_additive_expression(parser);
+        ast_node_t *right = parse_shift_expression(parser);
         if (!right)
         {
             return NULL;
@@ -355,19 +365,249 @@ static ast_node_t *parse_equality_expression(parser_state_t *parser)
     return node;
 }
 
+static ast_node_t *parse_shift_expression(parser_state_t *parser)
+{
+    ast_node_t *node = parser_make_node(parser, AST_BINARY_OPERATOR);
+
+    ast_node_t *left = parse_additive_expression(parser);
+
+    ast_add_child(node, left);
+
+    while (parser_test(parser, TOKEN_LT) || parser_test(parser, TOKEN_GT))
+    {
+        const token_t *f1_token = parser_peek(parser);
+
+        ast_node_t *right = NULL;
+
+        if (f1_token->type == TOKEN_LT && parser_test_nth(parser, TOKEN_LT, 1))
+        {
+            parser_next(parser);
+            parser_next(parser);
+            node->meta.binary_op.op_type = AST_BIN_OP_SHL;
+            right = parse_additive_expression(parser);
+        }
+        else if (f1_token->type == TOKEN_GT && parser_test_nth(parser, TOKEN_GT, 1))
+        {
+            parser_next(parser);
+            parser_next(parser);
+            node->meta.binary_op.op_type = AST_BIN_OP_SHR;
+            right = parse_additive_expression(parser);
+        }
+        else
+        {
+            break;
+        }
+
+        if (right)
+        {
+            ast_add_child(node, right);
+        }
+    }
+
+    if (node->children_count == 1)
+    {
+        ast_free(node);
+        return left;
+    }
+
+    return node;
+}
+
+static ast_node_t *parse_binary_and_expression(parser_state_t *parser)
+{
+    ast_node_t *node = parser_make_node(parser, AST_BINARY_OPERATOR);
+
+    ast_node_t *left = parse_equality_expression(parser);
+
+    if (!left)
+    {
+        return NULL;
+    }
+
+    ast_add_child(node, left);
+
+    while (parser_test(parser, TOKEN_AMPERSAND) && !parser_test_nth(parser, TOKEN_AMPERSAND, 1))
+    {
+        parser_expect(parser, TOKEN_AMPERSAND);
+
+        node->meta.binary_op.op_type = AST_BIN_OP_BITAND;
+
+        ast_node_t *right = parse_equality_expression(parser);
+
+        if (!right)
+        {
+            return NULL;
+        }
+
+        ast_add_child(node, right);
+    }
+
+    if (node->children_count == 1)
+    {
+        ast_free(node);
+        return left;
+    }
+
+    return node;
+}
+
+static ast_node_t *parse_binary_or_expression(parser_state_t *parser)
+{
+    ast_node_t *node = parser_make_node(parser, AST_BINARY_OPERATOR);
+
+    ast_node_t *left = parse_binary_and_expression(parser);
+
+    if (!left)
+    {
+        return NULL;
+    }
+
+    ast_add_child(node, left);
+
+    while (parser_test(parser, TOKEN_PIPE) && !parser_test_nth(parser, TOKEN_PIPE, 1))
+    {
+        parser_expect(parser, TOKEN_PIPE);
+
+        node->meta.binary_op.op_type = AST_BIN_OP_BITOR;
+
+        ast_node_t *right = parse_binary_and_expression(parser);
+
+        if (!right)
+        {
+            return NULL;
+        }
+
+        ast_add_child(node, right);
+    }
+
+    if (node->children_count == 1)
+    {
+        ast_free(node);
+        return left;
+    }
+
+    return node;
+}
+
+static ast_node_t *parse_binary_xor_expression(parser_state_t *parser)
+{
+    ast_node_t *node = parser_make_node(parser, AST_BINARY_OPERATOR);
+
+    ast_node_t *left = parse_binary_or_expression(parser);
+
+    if (!left)
+    {
+        return NULL;
+    }
+
+    ast_add_child(node, left);
+
+    while (parser_test(parser, TOKEN_CARET))
+    {
+        parser_expect(parser, TOKEN_CARET);
+
+        node->meta.binary_op.op_type = AST_BIN_OP_BITXOR;
+
+        ast_node_t *right = parse_binary_or_expression(parser);
+
+        if (!right)
+        {
+            return NULL;
+        }
+
+        ast_add_child(node, right);
+    }
+
+    if (node->children_count == 1)
+    {
+        ast_free(node);
+        return left;
+    }
+
+    return node;
+}
+
+static ast_node_t *parse_logical_and_expression(parser_state_t *parser)
+{
+    ast_node_t *node = parser_make_node(parser, AST_BINARY_OPERATOR);
+
+    ast_node_t *left = parse_binary_xor_expression(parser);
+
+    if (!left)
+    {
+        return NULL;
+    }
+
+    ast_add_child(node, left);
+
+    while (parser_test(parser, TOKEN_AMPERSAND) && parser_test_nth(parser, TOKEN_AMPERSAND, 1))
+    {
+        parser_expect(parser, TOKEN_AMPERSAND);
+        parser_expect(parser, TOKEN_AMPERSAND);
+
+        node->meta.binary_op.op_type = AST_BIN_OP_AND;
+
+        ast_node_t *right = parse_binary_xor_expression(parser);
+
+        if (!right)
+        {
+            return NULL;
+        }
+
+        ast_add_child(node, right);
+    }
+
+    if (node->children_count == 1)
+    {
+        ast_free(node);
+        return left;
+    }
+
+    return node;
+}
+
+static ast_node_t *parse_logical_or_expression(parser_state_t *parser)
+{
+    ast_node_t *node = parser_make_node(parser, AST_BINARY_OPERATOR);
+
+    ast_node_t *left = parse_logical_and_expression(parser);
+
+    if (!left)
+    {
+        return NULL;
+    }
+
+    ast_add_child(node, left);
+
+    while (parser_test(parser, TOKEN_PIPE) && parser_test_nth(parser, TOKEN_PIPE, 1))
+    {
+        parser_expect(parser, TOKEN_PIPE);
+        parser_expect(parser, TOKEN_PIPE);
+
+        node->meta.binary_op.op_type = AST_BIN_OP_OR;
+
+        ast_node_t *right = parse_logical_and_expression(parser);
+
+        if (!right)
+        {
+            return NULL;
+        }
+
+        ast_add_child(node, right);
+    }
+
+    if (node->children_count == 1)
+    {
+        ast_free(node);
+        return left;
+    }
+
+    return node;
+}
+
 static ast_node_t *parse_expression(parser_state_t *parser)
 {
-    // ast_node_t *node = parser_make_node(parser, AST_EXPRESSION);
-
-    // ast_node_t *v = parse_additive_expression(parser);
-
-    // if (!v)
-    //     return NULL;
-
-    // ast_add_child(node, v);
-
-    // return node;
-    return parse_equality_expression(parser);
+    return parse_logical_or_expression(parser);
 }
 
 static ast_node_t *parse_return_statement(parser_state_t *parser)

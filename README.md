@@ -32,8 +32,9 @@ Language features:
 
 - [x] Primitive types (int, char, float, double)
 - [x] Arithmetic binary operators (`+`, `-`, `*`, `/`)
-- [ ] Bitwise operators (`&`, `|`, `^`, `~`, `<<`, `>>`)
-- [ ] Logical operators (`&&`, `||`, `!`)
+- [x] Bitwise binary operators (`&`, `|`, `^`, `<<`, `>>`)
+- [ ] Logical binary operators (`&&`, `||`)
+- [ ] Unary operators (`+`, `-`, `!`, `~`)
 - [x] Comparison operators (`==`, `!=`, `<`, `>`, `<=`, `>=`)
 - [x] Variable declarations
 - [ ] Variable initializations

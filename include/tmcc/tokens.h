@@ -47,6 +47,11 @@ typedef enum
     TOKEN_COLON,
     TOKEN_BANG,
 
+    TOKEN_AMPERSAND,
+    TOKEN_PIPE,
+    TOKEN_CARET,
+    TOKEN_TILDE,
+
     TOKEN_EOF,
 } token_type_t;
 
