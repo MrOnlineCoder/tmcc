@@ -111,6 +111,28 @@ static token_type_t lexer_detect_keyword_or_id(const char *start, size_t length)
         return TOKEN_KW_FLOAT;
     if (strncmp(start, "double", 6) == 0)
         return TOKEN_KW_DOUBLE;
+    if (strncmp(start, "extern", 6) == 0)
+        return TOKEN_KW_EXTERN;
+    if (strncmp(start, "typedef", 7) == 0)
+        return TOKEN_KW_TYPEDEF;
+    if (strncmp(start, "volatile", 8) == 0)
+        return TOKEN_KW_VOLATILE;
+    if (strncmp(start, "struct", 6) == 0)
+        return TOKEN_KW_STRUCT;
+    if (strncmp(start, "union", 5) == 0)
+        return TOKEN_KW_UNION;
+    if (strncmp(start, "enum", 4) == 0)
+        return TOKEN_KW_ENUM;
+    if (strncmp(start, "sizeof", 6) == 0)
+        return TOKEN_KW_SIZEOF;
+    if (strncmp(start, "typeof", 6) == 0)
+        return TOKEN_KW_TYPEOF;
+    if (strncmp(start, "alignof", 7) == 0)
+        return TOKEN_KW_ALIGNOF;
+    if (strncmp(start, "register", 8) == 0)
+        return TOKEN_KW_REGISTER;
+    if (strncmp(start, "auto", 4) == 0)
+        return TOKEN_KW_AUTO;
 
     return TOKEN_IDENTIFIER;
 }
@@ -352,6 +374,20 @@ void lexer_run(lexer_state_t *lexer)
             continue;
         }
 
+        if (c == '[')
+        {
+            lexer_add_token(lexer, TOKEN_LBRACKET, 1);
+            lexer_advance(lexer);
+            continue;
+        }
+
+        if (c == ']')
+        {
+            lexer_add_token(lexer, TOKEN_RBRACKET, 1);
+            lexer_advance(lexer);
+            continue;
+        }
+
         if (c == '\'')
         {
             lexer_advance(lexer);
@@ -520,6 +556,48 @@ const char *token_type_to_string(token_type_t type)
         return "EOF";
     case TOKEN_BANG:
         return "BANG";
+    case TOKEN_AMPERSAND:
+        return "AMPERSAND";
+    case TOKEN_PIPE:
+        return "PIPE";
+    case TOKEN_CARET:
+        return "CARET";
+    case TOKEN_TILDE:
+        return "TILDE";
+    case TOKEN_KW_WHILE:
+        return "WHILE";
+    case TOKEN_KW_CHAR:
+        return "CHAR";
+    case TOKEN_KW_SHORT:
+        return "SHORT";
+    case TOKEN_KW_LONG:
+        return "LONG";
+    case TOKEN_KW_FLOAT:
+        return "FLOAT";
+    case TOKEN_KW_DOUBLE:
+        return "DOUBLE";
+    case TOKEN_KW_EXTERN:
+        return "EXTERN";
+    case TOKEN_KW_TYPEDEF:
+        return "TYPEDEF";
+    case TOKEN_KW_VOLATILE:
+        return "VOLATILE";
+    case TOKEN_KW_STRUCT:
+        return "STRUCT";
+    case TOKEN_KW_UNION:
+        return "UNION";
+    case TOKEN_KW_ENUM:
+        return "ENUM";
+    case TOKEN_KW_SIZEOF:
+        return "SIZEOF";
+    case TOKEN_KW_TYPEOF:
+        return "TYPEOF";
+    case TOKEN_KW_ALIGNOF:
+        return "ALIGNOF";
+    case TOKEN_KW_REGISTER:
+        return "REGISTER";
+    case TOKEN_KW_AUTO:
+        return "AUTO";
     default:
         return "UNKNOWN";
     }

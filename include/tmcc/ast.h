@@ -66,6 +66,21 @@ typedef enum
     AST_BIN_OP_BITXOR,
 } ast_bin_op_type_t;
 
+typedef struct
+{
+    // storage class
+    bool is_static;
+    bool is_extern;
+    bool is_typedef;
+
+    // type specifier
+    ctype_t *type;
+
+    // type qualifiers
+    bool is_volatile;
+    bool is_const;
+} declspec_t;
+
 struct ast_node_s
 {
     ast_node_type_t type;
@@ -108,8 +123,8 @@ struct ast_node_s
 
         struct
         {
-            ctype_t *type;
-            const token_t *id;
+            declspec_t ds;
+            const char *id;
         } declaration;
     } meta;
 };

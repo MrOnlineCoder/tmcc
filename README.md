@@ -27,6 +27,7 @@ Base compiler parts:
 - [ ] Preprocessor
 - [ ] Self-hosting compiler
 - [ ] Primitive register allocation
+- [ ] Arena based allocation of AST nodes, types and symbols
 
 Language features:
 
@@ -54,7 +55,7 @@ Language features:
 - [x] `return`
 - [ ] `sizeof`
 - [ ] Type qualifiers (`const`, `volatile`, `restrict`)
-- [ ] Storage class specifiers (`static`, `extern`, `auto`, `register`)
+- [ ] Storage class specifiers (`static`, `extern`)
 - [ ] Custom typedefs
 - [ ] Dereference and address-of operators (`*`, `&`)
 - [ ] Function pointers

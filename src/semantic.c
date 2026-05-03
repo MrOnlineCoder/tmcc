@@ -96,7 +96,8 @@ static bool is_valid_lvalue(ast_node_t *node)
 
 static void analyze_declaration(semantic_state_t *semantic, ast_node_t *node)
 {
-    const char *name = extract_token_as_new_string(node->meta.declaration.id);
+    // const char *name = extract_token_as_new_string(node->meta.declaration.id);
+    const char *name = node->meta.declaration.id;
 
     symbol_t *existing_sym = symtable_lookup(&semantic->current_scope->symtable, name);
 
@@ -107,7 +108,7 @@ static void analyze_declaration(semantic_state_t *semantic, ast_node_t *node)
         return;
     }
 
-    if (node->meta.declaration.type->kind == CTYPE_KIND_VOID)
+    if (node->meta.declaration.ds.type->kind == CTYPE_KIND_VOID)
     {
         semantic_error(semantic, "variable '%s' cannot be of type void at line %zu:%zu", name, node->start_token->line, node->start_token->column);
         free((char *)name);
@@ -118,7 +119,7 @@ static void analyze_declaration(semantic_state_t *semantic, ast_node_t *node)
 
     symbol_t *sym = symbol_new(
         name,
-        node->meta.declaration.type,
+        node->meta.declaration.ds.type,
         ss,
         0);
 

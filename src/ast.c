@@ -84,6 +84,23 @@ void ast_dump(ast_node_t *node, int indent)
     {
         snprintf(meta_str, sizeof(meta_str), " (%d)", node->meta.integer_literal.value);
     }
+    else if (node->type == AST_DECLARATION)
+    {
+        ctype_explain(node->meta.declaration.ds.type, meta_str, sizeof(meta_str));
+
+        if (node->meta.declaration.ds.is_static)
+        {
+            strncat(meta_str, ", static", sizeof(meta_str) - strlen(meta_str) - 1);
+        }
+        else if (node->meta.declaration.ds.is_extern)
+        {
+            strncat(meta_str, ", extern", sizeof(meta_str) - strlen(meta_str) - 1);
+        }
+        else if (node->meta.declaration.ds.is_typedef)
+        {
+            strncat(meta_str, ", typedef", sizeof(meta_str) - strlen(meta_str) - 1);
+        }
+    }
 
     printf("%s%s%s\n", indent_str, ast_type_to_string(node->type), meta_str);
     for (int i = 0; i < node->children_count; i++)

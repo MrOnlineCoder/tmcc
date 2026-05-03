@@ -1,0 +1,74 @@
+<declaration> ::=  {<declaration-specifier>}+ {<init-declarator>}* ;
+
+<declaration-specifier> ::= <storage-class-specifier>
+                          | <type-specifier>
+                          | <type-qualifier>
+
+<storage-class-specifier> ::= auto
+                            | register
+                            | static
+                            | extern
+                            | typedef
+
+<type-specifier> ::= void
+                   | char
+                   | short
+                   | int
+                   | long
+                   | float
+                   | double
+                   | signed
+                   | unsigned
+                   | <struct-or-union-specifier>
+                   | <enum-specifier>
+                   | <typedef-name>
+
+<type-qualifier> ::= const
+                   | volatile
+
+<init-declarator> ::= <declarator>
+                    | <declarator> = <initializer>
+
+<initializer> ::= <assignment-expression>
+                | { <initializer-list> }
+                | { <initializer-list> , }
+
+<initializer-list> ::= <initializer>
+                     | <initializer-list> , <initializer>
+
+<declarator> ::= {<pointer>}? <direct-declarator>
+
+<pointer> ::= * {<type-qualifier>}* {<pointer>}?
+
+
+<direct-declarator> ::= <identifier>
+                      | ( <declarator> )
+                      | <direct-declarator> [ {<constant-expression>}? ]
+                      | <direct-declarator> ( <parameter-type-list> )
+                      | <direct-declarator> ( {<identifier>}* )
+
+
+<struct-or-union-specifier> ::= <struct-or-union> <identifier> { {<struct-declaration>}+ }
+                              | <struct-or-union> { {<struct-declaration>}+ }
+                              | <struct-or-union> <identifier>
+
+<struct-or-union> ::= struct
+                    | union
+
+<struct-declaration> ::= {<specifier-qualifier>}* <struct-declarator-list>
+
+<specifier-qualifier> ::= <type-specifier>
+                        | <type-qualifier>
+
+<struct-declarator-list> ::= <struct-declarator>
+                           | <struct-declarator-list> , <struct-declarator>
+
+<struct-declarator> ::= <declarator>
+                      | <declarator> : <constant-expression>
+                      | : <constant-expression>
+
+<assignment-expression> ::= <conditional-expression>
+                          | <unary-expression> <assignment-operator> <assignment-expression>
+
+<conditional-expression> ::= <logical-or-expression>
+                           | <logical-or-expression> ? <expression> : <conditional-expression>

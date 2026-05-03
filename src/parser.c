@@ -5,13 +5,6 @@
 #include <stdarg.h>
 #include <stdlib.h>
 
-typedef struct
-{
-    ctype_t *type;
-    bool is_static;
-    bool is_const;
-} declspec_t;
-
 static void parser_fatal_error(parser_state_t *parser, const char *format, ...)
 {
     va_list args;
@@ -107,6 +100,7 @@ bool parser_init(parser_state_t *parser)
 static ast_node_t *parse_expression(parser_state_t *parser);
 static ast_node_t *parse_compound_statement(parser_state_t *parser);
 static ast_node_t *parse_shift_expression(parser_state_t *parser);
+static ctype_t *parse_declarator(parser_state_t *parser, ctype_t *tt);
 /*End of forward declarations*/
 
 static ast_node_t *parse_integer_literal(parser_state_t *parser)
@@ -643,9 +637,78 @@ static ast_node_t *parse_assign_statement(parser_state_t *parser)
     return node;
 }
 
-static bool is_declspec_token(token_type_t type)
+static bool is_declspec_type_specifier_token(token_type_t type)
 {
-    return type == TOKEN_KW_INT || type == TOKEN_KW_VOID || type == TOKEN_KW_STATIC || type == TOKEN_KW_CONST;
+    return type == TOKEN_KW_INT || type == TOKEN_KW_VOID || type == TOKEN_KW_CHAR || type == TOKEN_KW_SHORT || type == TOKEN_KW_LONG || type == TOKEN_KW_FLOAT || type == TOKEN_KW_DOUBLE;
+}
+
+static bool is_declspec_type_qualifier_token(token_type_t type)
+{
+    return type == TOKEN_KW_CONST || type == TOKEN_KW_VOLATILE;
+}
+
+static bool is_declspec_storage_class_token(token_type_t type)
+{
+    return type == TOKEN_KW_AUTO || type == TOKEN_KW_REGISTER || type == TOKEN_KW_STATIC || type == TOKEN_KW_EXTERN || type == TOKEN_KW_TYPEDEF;
+}
+
+static ctype_t *parse_declarator_pointer(parser_state_t *parser, ctype_t *base_type)
+{
+    parser_expect(parser, TOKEN_ASTERISK);
+
+    while (is_declspec_type_qualifier_token(parser_peek(parser)->type))
+    {
+        // TODO: account for type qualifiers in pointer types
+        parser_next(parser);
+    }
+
+    ctype_t *new_type = ctype_make_pointer(base_type);
+
+    if (parser_test(parser, TOKEN_ASTERISK))
+    {
+        return parse_declarator_pointer(parser, new_type);
+    }
+
+    return new_type;
+}
+
+static ctype_t *parse_direct_declarator(parser_state_t *parser, ctype_t *base_type)
+{
+    if (parser_test(parser, TOKEN_IDENTIFIER))
+    {
+        const token_t *id_token = parser_expect(parser, TOKEN_IDENTIFIER);
+
+        base_type->name = extract_token_as_new_string(id_token);
+        return base_type;
+    }
+    else if (parser_test(parser, TOKEN_LPAREN))
+    {
+        parser_expect(parser, TOKEN_LPAREN);
+        base_type = parse_declarator(parser, base_type);
+        parser_expect(parser, TOKEN_RPAREN);
+        return base_type;
+    }
+    else if (parser_test(parser, TOKEN_LBRACKET))
+    {
+        // TODO: parse array constant expression
+        return base_type;
+    }
+
+    return base_type;
+}
+
+static ctype_t *parse_declarator(parser_state_t *parser, ctype_t *base_type)
+{
+    ctype_t *decl_type = base_type;
+
+    if (parser_test(parser, TOKEN_ASTERISK))
+    {
+        decl_type = parse_declarator_pointer(parser, decl_type);
+    }
+
+    decl_type = parse_direct_declarator(parser, decl_type);
+
+    return decl_type;
 }
 
 static declspec_t parse_declspec(parser_state_t *parser)
@@ -654,8 +717,38 @@ static declspec_t parse_declspec(parser_state_t *parser)
 
     res.type = NULL;
 
-    while (is_declspec_token(parser_peek(parser)->type))
+    int storage_classes_assigned = 0;
+
+    while (
+        is_declspec_storage_class_token(parser_peek(parser)->type) ||
+        is_declspec_type_specifier_token(parser_peek(parser)->type) ||
+        is_declspec_type_qualifier_token(parser_peek(parser)->type))
     {
+        const token_t *spec_token = parser_peek(parser);
+
+        // storage class specifier
+        if (is_declspec_storage_class_token(parser_peek(parser)->type))
+        {
+            storage_classes_assigned++;
+
+            if (parser_test(parser, TOKEN_KW_STATIC))
+            {
+                res.is_static = true;
+            }
+            else if (parser_test(parser, TOKEN_KW_EXTERN))
+            {
+                res.is_extern = true;
+            }
+            else if (parser_test(parser, TOKEN_KW_TYPEDEF))
+            {
+                res.is_typedef = true;
+            }
+
+            parser_next(parser);
+            continue;
+        }
+
+        // type specifier
         if (parser_test(parser, TOKEN_KW_INT))
         {
             res.type = &CTYPE_BUILTIN_INT;
@@ -664,16 +757,43 @@ static declspec_t parse_declspec(parser_state_t *parser)
         {
             res.type = &CTYPE_BUILTIN_VOID;
         }
-        else if (parser_test(parser, TOKEN_KW_STATIC))
+        else if (parser_test(parser, TOKEN_KW_CHAR))
         {
-            res.is_static = true;
+            res.type = &CTYPE_BUILTIN_CHAR;
         }
-        else if (parser_test(parser, TOKEN_KW_CONST))
+        else if (parser_test(parser, TOKEN_KW_SHORT))
+        {
+            res.type = &CTYPE_BUILTIN_SHORT;
+        }
+        else if (parser_test(parser, TOKEN_KW_LONG))
+        {
+            res.type = &CTYPE_BUILTIN_LONG;
+        }
+        else if (parser_test(parser, TOKEN_KW_FLOAT))
+        {
+            res.type = &CTYPE_BUILTIN_FLOAT;
+        }
+        else if (parser_test(parser, TOKEN_KW_DOUBLE))
+        {
+            res.type = &CTYPE_BUILTIN_DOUBLE;
+        }
+
+        // type qualifier
+        if (parser_test(parser, TOKEN_KW_CONST))
         {
             res.is_const = true;
         }
+        else if (parser_test(parser, TOKEN_KW_VOLATILE))
+        {
+            res.is_volatile = true;
+        }
 
         parser_next(parser);
+    }
+
+    if (storage_classes_assigned > 1)
+    {
+        parser_error(parser, "multiple storage class specifiers in declaration");
     }
 
     return res;
@@ -683,15 +803,25 @@ static ast_node_t *parse_declaration(parser_state_t *parser)
 {
     declspec_t declspec = parse_declspec(parser);
 
+    ast_node_t *node = NULL;
+
     if (declspec.type == NULL)
     {
-        return parse_assign_statement(parser);
+        node = parse_assign_statement(parser);
     }
+    else
+    {
+        node = parser_make_node(parser, AST_DECLARATION);
 
-    ast_node_t *node = parser_make_node(parser, AST_DECLARATION);
+        ctype_t *decl_type = ctype_clone(declspec.type); // do we need this?
 
-    node->meta.declaration.type = declspec.type;
-    node->meta.declaration.id = parser_expect(parser, TOKEN_IDENTIFIER);
+        declspec.type = parse_declarator(parser, decl_type);
+
+        node->meta.declaration.ds = declspec;
+
+        node->meta.declaration.id = node->meta.declaration.ds.type->name;
+        // node->meta.declaration.id = parser_expect(parser, TOKEN_IDENTIFIER);
+    }
 
     parser_expect(parser, TOKEN_SEMICOLON);
 

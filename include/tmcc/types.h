@@ -13,12 +13,16 @@ typedef enum
     CTYPE_KIND_FLOAT,
     CTYPE_KIND_DOUBLE,
     CTYPE_KIND_POINTER,
-    CTYPE_KIND_FUNCTION
+    CTYPE_KIND_FUNCTION,
+    CTYPE_KIND_ARRAY,
 } ctype_kind_t;
 
 struct ctype_s
 {
     ctype_kind_t kind;
+    struct ctype_s *original;
+
+    const char *name;
 
     unsigned int size;
     unsigned int alignment;
@@ -56,5 +60,13 @@ extern ctype_t CTYPE_BUILTIN_FLOAT;
 extern ctype_t CTYPE_BUILTIN_DOUBLE;
 
 const ctype_t *ctype_binary_result_type(const ctype_t *left, const ctype_t *right);
+
+ctype_t *ctype_clone(const ctype_t *tt);
+
+ctype_t *ctype_new(ctype_kind_t kind);
+ctype_t *ctype_make_pointer(const ctype_t *base);
+ctype_t *ctype_make_array(const ctype_t *element_type, int size);
+
+void ctype_explain(const ctype_t *tt, char *output, int output_size);
 
 #endif
