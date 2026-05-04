@@ -12,5 +12,5 @@ int main()
     int dd = 5;
     int dd2 = 42 + dd;
 
-    return 0;
+    return dd2;
 }

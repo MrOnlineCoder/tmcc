@@ -292,6 +292,29 @@ static void codegen_while_statement(codegen_state_t *cg, ast_node_t *node)
     emit_label(cg, ".L.end.%d:", id);
 }
 
+static void codegen_declaration(codegen_state_t *cg, ast_node_t *node)
+{
+    // Declaration is not a statement, but declarations may have initializer expressions, so we need to handle them in codegen as well.
+
+    if (node->type != AST_DECLARATION)
+        return;
+
+    if (node->children_count > 0)
+    {
+        ast_node_t *initializer_expr = node->children[0];
+        codegen_expression(cg, initializer_expr); // value in rax
+
+        symbol_t *sym = symtable_lookup(
+            cg->current_function->meta.function.locals,
+            node->meta.declaration.id);
+
+        if (sym)
+        {
+            emit_code(cg, "mov [rbp - %d], rax", sym->stack_offset);
+        }
+    }
+}
+
 static void codegen_compound_statement(codegen_state_t *cg, ast_node_t *node)
 {
     if (node->type != AST_COMPOUND_STATEMENT)
@@ -320,6 +343,10 @@ static void codegen_compound_statement(codegen_state_t *cg, ast_node_t *node)
         else if (stmt->type == AST_COMPOUND_STATEMENT)
         {
             codegen_compound_statement(cg, stmt);
+        }
+        else if (stmt->type == AST_DECLARATION)
+        {
+            codegen_declaration(cg, stmt);
         }
     }
 }
