@@ -14,8 +14,18 @@ static parser_state_t parser;
 static semantic_state_t semantic;
 static codegen_state_t codegen;
 
+void early_terminate(int sig)
+{
+    printf("\nInterrupted by user. Exiting...\n");
+    exit(0);
+    abort();
+}
+
 int main(int argc, char *argv[])
 {
+    signal(SIGINT, early_terminate);
+    signal(SIGTERM, early_terminate);
+
     const char *source_filename = argv[1];
 
     if (argc < 2)

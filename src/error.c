@@ -13,4 +13,5 @@ void crash(const char *msg, ...)
     fprintf(stderr, "\n");
     va_end(args);
     exit(1);
+    abort();
 }

@@ -329,8 +329,7 @@ static void codegen_function_definition(codegen_state_t *cg, ast_node_t *node)
     if (node->type != AST_FUNCTION_DEFINITION)
         return;
 
-    int stack_size = 0;
-    int locals_offset = 8;
+    int total_locals_offset = 8;
 
     if (node->meta.function.locals)
     {
@@ -340,17 +339,17 @@ static void codegen_function_definition(codegen_state_t *cg, ast_node_t *node)
 
             if (sym)
             {
-                int stack_offset = calculate_alignment(
-                    stack_size, sym->type->alignment);
+                int local_offset = calculate_alignment(total_locals_offset, sym->type->alignment);
+                sym->stack_offset = local_offset;
 
-                sym->stack_offset = locals_offset + stack_offset;
-
-                stack_size += stack_offset + sym->type->size;
+                total_locals_offset = local_offset + sym->type->size;
 
                 printf("symbol '%s' of type %d at stack offset %d\n", sym->name, sym->type->kind, sym->stack_offset);
             }
         }
     }
+
+    int stack_size = calculate_alignment(total_locals_offset, 16); // align stack to 16 bytes
 
     cg->current_function = node;
 

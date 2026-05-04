@@ -793,7 +793,7 @@ static declspec_t parse_declspec(parser_state_t *parser)
 
     if (storage_classes_assigned > 1)
     {
-        parser_error(parser, "multiple storage class specifiers in declaration");
+        parser_error(parser, "multiple storage class specifiers in declaration, use only one of: auto, register, static, extern, typedef");
     }
 
     return res;
@@ -803,25 +803,36 @@ static ast_node_t *parse_declaration(parser_state_t *parser)
 {
     declspec_t declspec = parse_declspec(parser);
 
-    ast_node_t *node = NULL;
-
+    // This looks like an expression statement, not a declaration, since it has no type specifier
     if (declspec.type == NULL)
     {
-        node = parse_assign_statement(parser);
+        return parse_assign_statement(parser);
     }
-    else
+
+    ast_node_t *node = parser_make_node(parser, AST_DECLARATION);
+
+    declspec.type = ctype_clone(declspec.type); // do we need this?
+
+    // Right now we have only declspec data (storage class, type)
+
+    // Now we need to parse declarator itself and update the type (is it pointer, array?)
+    declspec.type = parse_declarator(parser, declspec.type);
+
+    if (parser_test(parser, TOKEN_EQUAL))
     {
-        node = parser_make_node(parser, AST_DECLARATION);
+        parser_next(parser);
 
-        ctype_t *decl_type = ctype_clone(declspec.type); // do we need this?
+        // TODO: allow parsing struct initializer lists here as well
+        ast_node_t *initializer_expr = parse_expression(parser);
 
-        declspec.type = parse_declarator(parser, decl_type);
-
-        node->meta.declaration.ds = declspec;
-
-        node->meta.declaration.id = node->meta.declaration.ds.type->name;
-        // node->meta.declaration.id = parser_expect(parser, TOKEN_IDENTIFIER);
+        if (initializer_expr)
+        {
+            ast_add_child(node, initializer_expr);
+        }
     }
+
+    node->meta.declaration.ds = declspec;
+    node->meta.declaration.id = declspec.type->name; // parsed declarator identifier name
 
     parser_expect(parser, TOKEN_SEMICOLON);
 

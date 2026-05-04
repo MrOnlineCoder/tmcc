@@ -5,8 +5,7 @@
 
 ast_node_t *ast_make_node(ast_node_type_t type, const token_t *start_token)
 {
-    ast_node_t *node = malloc(sizeof(ast_node_t));
-    memset(node, 0, sizeof(ast_node_t));
+    ast_node_t *node = calloc(1, sizeof(ast_node_t));
     node->type = type;
     node->start_token = start_token;
     node->children_count = 0;
@@ -99,6 +98,16 @@ void ast_dump(ast_node_t *node, int indent)
         else if (node->meta.declaration.ds.is_typedef)
         {
             strncat(meta_str, ", typedef", sizeof(meta_str) - strlen(meta_str) - 1);
+        }
+
+        if (node->meta.declaration.ds.is_const)
+        {
+            strncat(meta_str, ", const", sizeof(meta_str) - strlen(meta_str) - 1);
+        }
+
+        if (node->meta.declaration.ds.is_volatile)
+        {
+            strncat(meta_str, ", volatile", sizeof(meta_str) - strlen(meta_str) - 1);
         }
     }
 

@@ -130,6 +130,15 @@ static void analyze_declaration(semantic_state_t *semantic, ast_node_t *node)
         symtable_add(semantic->locals, sym);
     }
 
+    if (node->children_count > 0)
+    {
+        // initializer expression
+        ast_node_t *init_expr = node->children[0];
+        analyze_expression(semantic, init_expr);
+
+        // TODO: check that initializer expression type is compatible with variable type
+    }
+
     semantic_debug(semantic, "declared variable '%s' of type %d in scope depth %zu",
                    sym->name, sym->type->kind, semantic->current_scope->depth);
 }
