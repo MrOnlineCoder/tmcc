@@ -38,7 +38,7 @@ Language features:
 - [ ] Unary operators (`+`, `-`, `!`, `~`)
 - [x] Comparison operators (`==`, `!=`, `<`, `>`, `<=`, `>=`)
 - [x] Variable declarations
-- [ ] Variable initializations
+- [x] Variable initializations
 - [ ] Pointers
 - [ ] Arrays
 - [ ] Structs

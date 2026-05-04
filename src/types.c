@@ -174,3 +174,20 @@ ctype_t *ctype_clone(const ctype_t *tt)
 
     return clone;
 }
+
+const ctype_t *ctype_unary_result_type(ast_unary_op_type_t op_type, const ctype_t *operand)
+{
+    if (op_type == AST_UNARY_OP_SIZEOF)
+    {
+        return &CTYPE_BUILTIN_INT; // TODO: size_t?
+    }
+
+    if (op_type == AST_UNARY_OP_ADDR)
+    {
+        return ctype_make_pointer(operand);
+    }
+
+    // TODO: pointers
+
+    return operand;
+}

@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <tmcc/symtable.h>
 #include <tmcc/symbol.h>
+#include <tmcc/types.h>
 
 static void emit_code(codegen_state_t *cg, const char *code, ...)
 {
@@ -79,6 +80,56 @@ static void codegen_integer_literal(codegen_state_t *cg, ast_node_t *node)
         return;
 
     emit_code(cg, "mov rax, %d", node->meta.integer_literal.value);
+}
+
+static void codegen_unary_op(codegen_state_t *cg, ast_node_t *node)
+{
+    if (node->type != AST_UNARY_OPERATOR)
+        return;
+
+    ast_node_t *operand = node->children[0];
+
+    switch (node->meta.unary_op.op_type)
+    {
+    case AST_UNARY_OP_MINUS:
+        codegen_expression(cg, operand); // rax == operand
+        emit_code(cg, "neg rax");
+        break;
+    case AST_UNARY_OP_BITNOT:
+        codegen_expression(cg, operand); // rax == operand
+        emit_code(cg, "not rax");
+        break;
+    case AST_UNARY_OP_LOGNOT:
+        codegen_expression(cg, operand); // rax == operand
+        emit_code(cg, "cmp rax, 0");
+        emit_code(cg, "sete al");
+        emit_code(cg, "movzx rax, al");
+        break;
+    case AST_UNARY_OP_PREDEC:
+    case AST_UNARY_OP_PREINC:
+    {
+        codegen_address(cg, operand);    // rax == &operand
+        emit_code(cg, "mov rbx, [rax]"); // rbx == operand
+        if (node->meta.unary_op.op_type == AST_UNARY_OP_PREDEC)
+        {
+            emit_code(cg, "dec rbx");
+        }
+        else
+        {
+            emit_code(cg, "inc rbx");
+        }
+        emit_code(cg, "mov [rax], rbx");
+        }
+    break;
+    case AST_UNARY_OP_ADDR:
+        codegen_address(cg, operand); // rax == &operand
+        break;
+    case AST_UNARY_OP_DEREF:
+        // TODO: implement deref
+        break;
+    default:
+        break;
+    }
 }
 
 /*
@@ -193,6 +244,10 @@ static void codegen_expression(codegen_state_t *cg, ast_node_t *node)
     {
         codegen_address(cg, node);
         emit_code(cg, "mov rax, [rax]");
+    }
+    else if (node->type == AST_UNARY_OPERATOR)
+    {
+        codegen_unary_op(cg, node);
     }
 }
 

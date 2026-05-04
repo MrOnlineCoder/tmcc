@@ -1,5 +1,6 @@
 #include <tmcc/semantic.h>
 #include <tmcc/tokens.h>
+#include <tmcc/types.h>
 #include <stdarg.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -155,6 +156,27 @@ static void analyze_binary_operator(semantic_state_t *semantic, ast_node_t *node
         left->expr_type, right->expr_type);
 }
 
+static void analyze_unary_operator(semantic_state_t *semantic, ast_node_t *node)
+{
+    ast_node_t *child = node->children[0];
+
+    analyze_expression(semantic, child);
+
+    ast_unary_op_type_t op_type = node->meta.unary_op.op_type;
+
+    if (op_type == AST_UNARY_OP_PREINC || op_type == AST_UNARY_OP_PREDEC || op_type == AST_UNARY_OP_ADDR)
+    {
+        if (!is_valid_lvalue(child))
+        {
+            semantic_error(semantic, "invalid lvalue in unary operator at line %zu:%zu", child->start_token->line, child->start_token->column);
+            return;
+        }
+    }
+
+    node->expr_type = ctype_unary_result_type(
+        node->meta.unary_op.op_type, child->expr_type);
+}
+
 static void analyze_expression(semantic_state_t *semantic, ast_node_t *node)
 {
     if (node->type == AST_BINARY_OPERATOR)
@@ -169,6 +191,10 @@ static void analyze_expression(semantic_state_t *semantic, ast_node_t *node)
     else if (node->type == AST_INTEGER_LITERAL)
     {
         node->expr_type = &CTYPE_BUILTIN_INT;
+    }
+    else if (node->type == AST_UNARY_OPERATOR)
+    {
+        analyze_unary_operator(semantic, node);
     }
 }
 

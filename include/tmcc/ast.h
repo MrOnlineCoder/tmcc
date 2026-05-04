@@ -28,6 +28,8 @@ typedef enum
 
     AST_BINARY_OPERATOR,
 
+    AST_UNARY_OPERATOR,
+
     AST_ASSIGN_STATEMENT,
 
     AST_IF_STATEMENT,
@@ -41,6 +43,8 @@ typedef enum
 
 typedef enum
 {
+    AST_BIN_OP_INVALID,
+
     AST_BIN_OP_ADD,
     AST_BIN_OP_SUB,
     AST_BIN_OP_MUL,
@@ -65,6 +69,20 @@ typedef enum
     AST_BIN_OP_BITOR,
     AST_BIN_OP_BITXOR,
 } ast_bin_op_type_t;
+
+typedef enum
+{
+    AST_UNARY_OP_INVALID,
+    AST_UNARY_OP_BITNOT,
+    AST_UNARY_OP_LOGNOT,
+    AST_UNARY_OP_PLUS,
+    AST_UNARY_OP_MINUS,
+    AST_UNARY_OP_ADDR,
+    AST_UNARY_OP_DEREF,
+    AST_UNARY_OP_PREINC,
+    AST_UNARY_OP_PREDEC,
+    AST_UNARY_OP_SIZEOF,
+} ast_unary_op_type_t;
 
 typedef struct
 {
@@ -118,6 +136,11 @@ struct ast_node_s
 
         struct
         {
+            ast_unary_op_type_t op_type;
+        } unary_op;
+
+        struct
+        {
             symbol_t *sym;
         } variable;
 
@@ -142,5 +165,6 @@ void ast_free_deep(ast_node_t *node);
 void ast_free(ast_node_t *node);
 
 const char *bin_op_to_string(ast_bin_op_type_t op_type);
+const char *unary_op_to_string(ast_unary_op_type_t op_type);
 
 #endif

@@ -3,6 +3,8 @@
 
 #define CTYPE_MAX_FUNCTION_PARAMS 16
 
+#include <tmcc/ast.h>
+
 typedef enum
 {
     CTYPE_KIND_VOID,
@@ -60,6 +62,7 @@ extern ctype_t CTYPE_BUILTIN_FLOAT;
 extern ctype_t CTYPE_BUILTIN_DOUBLE;
 
 const ctype_t *ctype_binary_result_type(const ctype_t *left, const ctype_t *right);
+const ctype_t *ctype_unary_result_type(ast_unary_op_type_t op_type, const ctype_t *operand);
 
 ctype_t *ctype_clone(const ctype_t *tt);
 

@@ -150,11 +150,80 @@ static ast_node_t *parse_primary_expression(parser_state_t *parser)
     return NULL;
 }
 
+static ast_node_t *parse_unary_expression(parser_state_t *parser)
+{
+    ast_unary_op_type_t op_type = AST_UNARY_OP_INVALID;
+
+    if (parser_test(parser, TOKEN_MINUS) && parser_test_nth(parser, TOKEN_MINUS, 1))
+    {
+        op_type = AST_UNARY_OP_PREDEC;
+    }
+    if (parser_test(parser, TOKEN_PLUS) && parser_test_nth(parser, TOKEN_PLUS, 1))
+    {
+        op_type = AST_UNARY_OP_PREINC;
+    }
+    else if (parser_test(parser, TOKEN_KW_SIZEOF))
+    {
+        op_type = AST_UNARY_OP_SIZEOF;
+    }
+    else if (parser_test(parser, TOKEN_AMPERSAND))
+    {
+        op_type = AST_UNARY_OP_ADDR;
+    }
+    else if (parser_test(parser, TOKEN_ASTERISK))
+    {
+        op_type = AST_UNARY_OP_DEREF;
+    }
+    else if (parser_test(parser, TOKEN_PLUS))
+    {
+        op_type = AST_UNARY_OP_PLUS;
+    }
+    else if (parser_test(parser, TOKEN_MINUS))
+    {
+        op_type = AST_UNARY_OP_MINUS;
+    }
+    else if (parser_test(parser, TOKEN_BANG))
+    {
+        op_type = AST_UNARY_OP_LOGNOT;
+    }
+    else if (parser_test(parser, TOKEN_TILDE))
+    {
+        op_type = AST_UNARY_OP_BITNOT;
+    }
+
+    if (op_type == AST_UNARY_OP_INVALID)
+    {
+        return parse_primary_expression(parser);
+    }
+
+    parser_next(parser);
+
+    if (op_type == AST_UNARY_OP_PREDEC || op_type == AST_UNARY_OP_PREINC)
+    {
+        parser_next(parser);
+    }
+
+    ast_node_t *node = parser_make_node(parser, AST_UNARY_OPERATOR);
+
+    node->meta.unary_op.op_type = op_type;
+
+    ast_node_t *child = parse_primary_expression(parser);
+
+    if (!child)
+    {
+        return NULL;
+    }
+
+    ast_add_child(node, child);
+
+    return node;
+}
+
 static ast_node_t *parse_multiplicative_expression(parser_state_t *parser)
 {
     ast_node_t *node = parser_make_node(parser, AST_BINARY_OPERATOR);
 
-    ast_node_t *left = parse_primary_expression(parser);
+    ast_node_t *left = parse_unary_expression(parser);
 
     if (!left)
     {
@@ -180,7 +249,7 @@ static ast_node_t *parse_multiplicative_expression(parser_state_t *parser)
 
         node->meta.binary_op.op_type = op_type;
 
-        ast_node_t *right = parse_multiplicative_expression(parser);
+        ast_node_t *right = parse_unary_expression(parser);
         if (!right)
         {
             return NULL;

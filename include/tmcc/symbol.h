@@ -1,9 +1,9 @@
 #ifndef SYMBOL_H
 #define SYMBOL_H
 
-#include <tmcc/types.h>
-
 #define MAX_SYMBOL_NAME_LENGTH 64
+
+typedef struct ctype_s ctype_t;
 
 typedef enum
 {

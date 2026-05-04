@@ -1,4 +1,5 @@
 #include <tmcc/ast.h>
+#include <tmcc/types.h>
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -51,6 +52,8 @@ static const char *ast_type_to_string(ast_node_type_t type)
         return "IF_STATEMENT";
     case AST_WHILE_STATEMENT:
         return "WHILE_STATEMENT";
+    case AST_UNARY_OPERATOR:
+        return "UNARY_OPERATOR";
     default:
         return "UNKNOWN";
     }
@@ -74,6 +77,10 @@ void ast_dump(ast_node_t *node, int indent)
     if (node->type == AST_BINARY_OPERATOR)
     {
         snprintf(meta_str, sizeof(meta_str), " (%s)", bin_op_to_string(node->meta.binary_op.op_type));
+    }
+    else if (node->type == AST_UNARY_OPERATOR)
+    {
+        snprintf(meta_str, sizeof(meta_str), " (%s)", unary_op_to_string(node->meta.unary_op.op_type));
     }
     else if (node->type == AST_VARIABLE)
     {
@@ -180,6 +187,33 @@ const char *bin_op_to_string(ast_bin_op_type_t op_type)
         return "|";
     case AST_BIN_OP_BITXOR:
         return "^";
+    default:
+        return "unknown";
+    }
+}
+
+const char *unary_op_to_string(ast_unary_op_type_t op_type)
+{
+    switch (op_type)
+    {
+    case AST_UNARY_OP_BITNOT:
+        return "~";
+    case AST_UNARY_OP_LOGNOT:
+        return "!";
+    case AST_UNARY_OP_PLUS:
+        return "+";
+    case AST_UNARY_OP_MINUS:
+        return "-";
+    case AST_UNARY_OP_ADDR:
+        return "&";
+    case AST_UNARY_OP_DEREF:
+        return "*";
+    case AST_UNARY_OP_PREINC:
+        return "++i";
+    case AST_UNARY_OP_PREDEC:
+        return "--i";
+    case AST_UNARY_OP_SIZEOF:
+        return "sizeof";
     default:
         return "unknown";
     }
