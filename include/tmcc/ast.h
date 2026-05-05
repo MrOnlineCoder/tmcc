@@ -114,6 +114,11 @@ struct ast_node_s
     {
         struct
         {
+            symbol_table_t *globals;
+        } program;
+
+        struct
+        {
             bool is_static;
             bool is_inline;
             const char *name;

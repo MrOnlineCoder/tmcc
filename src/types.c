@@ -156,7 +156,7 @@ void ctype_explain(const ctype_t *tt, char *output, int output_size)
         strncat(output, temp, output_size - strlen(output) - 1);
     }
 
-    snprintf(temp, sizeof(temp), "(%u bytes)", tt->size);
+    snprintf(temp, sizeof(temp), "(%u bytes, originally %s)", tt->size, tt->original->name);
     strncat(output, temp, output_size - strlen(output) - 1);
 }
 

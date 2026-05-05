@@ -119,7 +119,7 @@ static void codegen_unary_op(codegen_state_t *cg, ast_node_t *node)
             emit_code(cg, "inc rbx");
         }
         emit_code(cg, "mov [rax], rbx");
-        }
+    }
     break;
     case AST_UNARY_OP_ADDR:
         codegen_address(cg, operand); // rax == &operand
@@ -261,8 +261,16 @@ static void codegen_address(codegen_state_t *cg, ast_node_t *node)
     if (!sym)
         return;
 
-    emit_code(cg, "; address of variable '%s' at stack offset %d", sym->name, sym->stack_offset);
-    emit_code(cg, "lea rax, [rbp - %d]", sym->stack_offset);
+    if (sym->scope == SCOPE_GLOBAL)
+    {
+        emit_code(cg, "; address of global variable '%s'", sym->name);
+        emit_code(cg, "lea rax, [rel %s]", sym->name);
+    }
+    else
+    {
+        emit_code(cg, "; address of local variable '%s' at stack offset %d", sym->name, sym->stack_offset);
+        emit_code(cg, "lea rax, [rbp - %d]", sym->stack_offset);
+    }
 }
 
 static void codegen_return_statement(codegen_state_t *cg, ast_node_t *node)
@@ -467,12 +475,51 @@ static void codegen_function_definition(codegen_state_t *cg, ast_node_t *node)
     cg->current_function = NULL;
 }
 
+static void codegen_globals(codegen_state_t *cg, ast_node_t *node)
+{
+    for (int i = 0; i < node->meta.program.globals->count; i++)
+    {
+        symbol_t *sym = node->meta.program.globals->symbols[i];
+
+        if (sym)
+        {
+            static char type_desc[64];
+            ctype_explain(sym->type, type_desc, sizeof(type_desc));
+            emit_label(cg, "; global variable %s", type_desc);
+            emit_label(cg, "global %s", sym->name);
+            emit_label(cg, "section .data");
+            emit_label(cg, "%s:", sym->name);
+
+            if (sym->type->size == 1)
+            {
+                emit_code(cg, "db 0");
+            }
+            else if (sym->type->size == 2)
+            {
+                emit_code(cg, "dw 0");
+            }
+            else if (sym->type->size == 4)
+            {
+                emit_code(cg, "dd 0");
+            }
+            else if (sym->type->size == 8)
+            {
+                emit_code(cg, "dq 0");
+            }
+
+            emit_label(cg, "");
+        }
+    }
+}
+
 static void codegen_program(codegen_state_t *cg, ast_node_t *node)
 {
     if (node->type != AST_PROGRAM)
         return;
 
     emit_label(cg, "global _main");
+
+    codegen_globals(cg, node);
 
     emit_label(cg, "section .text");
 

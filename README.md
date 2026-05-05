@@ -35,7 +35,7 @@ Language features:
 - [x] Arithmetic binary operators (`+`, `-`, `*`, `/`)
 - [x] Bitwise binary operators (`&`, `|`, `^`, `<<`, `>>`)
 - [ ] Logical binary operators (`&&`, `||`)
-- [ ] Unary operators (`+`, `-`, `!`, `~`)
+- [x] Unary operators (`+`, `-`, `!`, `~`)
 - [x] Comparison operators (`==`, `!=`, `<`, `>`, `<=`, `>=`)
 - [x] Variable declarations
 - [x] Variable initializations
@@ -56,6 +56,7 @@ Language features:
 - [ ] `sizeof`
 - [ ] Type qualifiers (`const`, `volatile`, `restrict`)
 - [ ] Storage class specifiers (`static`, `extern`)
+- [ ] Global variables
 - [ ] Custom typedefs
 - [ ] Dereference and address-of operators (`*`, `&`)
 - [ ] Function pointers

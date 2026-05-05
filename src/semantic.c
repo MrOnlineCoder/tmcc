@@ -109,7 +109,9 @@ static void analyze_declaration(semantic_state_t *semantic, ast_node_t *node)
         return;
     }
 
-    if (node->meta.declaration.ds.type->kind == CTYPE_KIND_VOID)
+    declspec_t dspec = node->meta.declaration.ds;
+
+    if (dspec.type->kind == CTYPE_KIND_VOID)
     {
         semantic_error(semantic, "variable '%s' cannot be of type void at line %zu:%zu", name, node->start_token->line, node->start_token->column);
         free((char *)name);
@@ -124,11 +126,25 @@ static void analyze_declaration(semantic_state_t *semantic, ast_node_t *node)
         ss,
         0);
 
-    symtable_add(&semantic->current_scope->symtable, sym);
-
-    if (ss == SCOPE_LOCAL && semantic->locals)
+    if (dspec.is_static && ss == SCOPE_LOCAL)
     {
-        symtable_add(semantic->locals, sym);
+        sym->scope = SCOPE_GLOBAL;
+        symtable_add(&semantic->global_scope.symtable, sym);
+
+        semantic_debug(semantic, "declared static local variable '%s' of type %d in scope depth %zu",
+                       sym->name, sym->type->kind, semantic->current_scope->depth);
+    }
+    else
+    {
+        symtable_add(&semantic->current_scope->symtable, sym);
+
+        if (ss == SCOPE_LOCAL && semantic->locals)
+        {
+            symtable_add(semantic->locals, sym);
+        }
+
+        semantic_debug(semantic, "declared local variable '%s' of type %d in scope depth %zu",
+                       sym->name, sym->type->kind, semantic->current_scope->depth);
     }
 
     if (node->children_count > 0)
@@ -139,9 +155,6 @@ static void analyze_declaration(semantic_state_t *semantic, ast_node_t *node)
 
         // TODO: check that initializer expression type is compatible with variable type
     }
-
-    semantic_debug(semantic, "declared variable '%s' of type %d in scope depth %zu",
-                   sym->name, sym->type->kind, semantic->current_scope->depth);
 }
 
 static void analyze_binary_operator(semantic_state_t *semantic, ast_node_t *node)
@@ -357,6 +370,8 @@ static void analyze_function_definition(semantic_state_t *semantic, ast_node_t *
 static void analyze_program(semantic_state_t *semantic, ast_node_t *node)
 {
     analyze_function_definition(semantic, node->children[0]);
+
+    node->meta.program.globals = &semantic->global_scope.symtable;
 }
 
 bool semantic_init(semantic_state_t *semantic)
