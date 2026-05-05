@@ -17,6 +17,7 @@ static void semantic_debug(semantic_state_t *semantic, const char *format, ...)
 {
     va_list args;
     va_start(args, format);
+    printf("[semantic] ");
     vprintf(format, args);
     printf("\n");
     va_end(args);

@@ -106,6 +106,7 @@ ctype_t *ctype_make_pointer(const ctype_t *base)
     tt->size = sizeof(void *);
     tt->alignment = sizeof(void *);
     tt->meta.pointer.base = (ctype_t *)base;
+    tt->original = base;
 
     return tt;
 }

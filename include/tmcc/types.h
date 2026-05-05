@@ -22,7 +22,7 @@ typedef enum
 struct ctype_s
 {
     ctype_kind_t kind;
-    struct ctype_s *original;
+    const struct ctype_s *original;
 
     const char *name;
 

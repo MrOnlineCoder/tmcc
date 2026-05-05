@@ -63,8 +63,16 @@ static const token_t *parser_expect(parser_state_t *parser, token_type_t type)
         return token;
     }
 
-    parser_error(parser, "expected token %s, got %s instead",
-                 token_type_to_string(type), token_type_to_string(token->type));
+    if (token)
+    {
+        parser_error(parser, "expected token %s, got %s instead",
+                     token_type_to_string(type), token_type_to_string(token->type));
+    }
+    else
+    {
+        parser_error(parser, "expected token %s, but reached end of input",
+                     token_type_to_string(type));
+    }
 
     return NULL;
 }
@@ -207,7 +215,7 @@ static ast_node_t *parse_unary_expression(parser_state_t *parser)
 
     node->meta.unary_op.op_type = op_type;
 
-    ast_node_t *child = parse_primary_expression(parser);
+    ast_node_t *child = parse_unary_expression(parser);
 
     if (!child)
     {
